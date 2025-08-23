@@ -67,6 +67,7 @@ Route::delete('admin/products/{id}', [ProductManagementController::class, 'destr
 Route::get('admin/products', [ProductManagementController::class, 'index']);
 Route::get('admin/categories', [CategoryManagementController::class, 'index']);
 Route::post('admin/categories', [CategoryManagementController::class, 'store']);
+Route::put('admin/categories/{id}', [CategoryManagementController::class, 'update']);
 Route::delete('admin/categories/{id}', [CategoryManagementController::class, 'destroy']);
 
 

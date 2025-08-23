@@ -48,6 +48,38 @@ class CategoryManagementController extends Controller
         return response()->json($category, 201);
     }
 
+    public function update(Request $request, $id){
+        $category = Category::findOrFail($id);
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'parent_id' => 'nullable|exists:categories,id|not_in:' . $id, // prevent setting itself as parent
+        ]);
+
+        $slug = Str::slug($request->name, '-');
+
+        $query = Category::where('slug', $slug)->where('id', '!=', $id);
+        if ($request->parent_id) {
+            $query->where('parent_id', $request->parent_id);
+        } else {
+            $query->whereNull('parent_id');
+        }
+
+        if ($query->exists()) {
+            return response()->json([
+                'message' => 'A category with this slug already exists under the selected parent.'
+            ], 422);
+        }
+
+        $category->update([
+            'name' => $request->name,
+            'parent_id' => $request->parent_id,
+            'slug' => $slug,
+        ]);
+
+        return response()->json($category);
+    }
+
     public function destroy($id)
     {
         $category = Category::findOrFail($id);
