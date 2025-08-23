@@ -12,12 +12,22 @@ class ProductController extends Controller
         return Product::where('active', true)->paginate(10);
     }
 
-    public function show(Product $product)
+    public function show($id)
     {
-        if (!$product->active) {
-            return response()->json(['message' => 'Not found'], 404);
-        }
-        return $product;
+        $product = Product::with('category.parent')->findOrFail($id);
+
+        return response()->json([
+            'id' => $product->id,
+            'title' => $product->title,
+            'price' => $product->price,
+            'description' => $product->description,
+            'main_image' => $product->main_image,
+            'category' => [
+                'id' => $product->category->id,
+                'name' => $product->category->name,
+                'breadcrumb' => $product->category->breadcrumb,
+            ]
+        ]);
     }
 
     public function byCategory($path = null){
