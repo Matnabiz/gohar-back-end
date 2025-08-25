@@ -29,8 +29,7 @@ class Category extends Model
         return $this->slug;
     }
 
-    public function getBreadcrumbAttribute()
-    {
+    public function getBreadcrumbAttribute(){
         $breadcrumb = [];
         $category = $this;
 
