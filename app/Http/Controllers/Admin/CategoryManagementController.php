@@ -23,7 +23,7 @@ class CategoryManagementController extends Controller
         ]);
 
         // Generate a simple slug just for this category
-        $slug = Str::slug($request->name, '--');
+        $slug = Str::slug($request->name, '-');
 
         // Ensure slug is unique among siblings
         $query = Category::where('slug', $slug);
@@ -56,7 +56,7 @@ class CategoryManagementController extends Controller
             'parent_id' => 'nullable|exists:categories,id|not_in:' . $id, // prevent setting itself as parent
         ]);
 
-        $slug = Str::slug($request->name, '-');
+        $slug = Str::slug($request->name, '--');
 
         $query = Category::where('slug', $slug)->where('id', '!=', $id);
         if ($request->parent_id) {
