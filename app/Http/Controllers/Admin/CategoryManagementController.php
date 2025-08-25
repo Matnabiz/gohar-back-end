@@ -23,7 +23,7 @@ class CategoryManagementController extends Controller
         ]);
 
         // Generate a simple slug just for this category
-        $slug = Str::slug($request->name, '-');
+        $slug = Str::slug($request->name, '--');
 
         // Ensure slug is unique among siblings
         $query = Category::where('slug', $slug);
