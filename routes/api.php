@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\CategoryManagementController;
 use App\Http\Controllers\Admin\ProductManagementController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\BlogController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ProductController;
@@ -69,6 +70,15 @@ Route::get('admin/categories', [CategoryManagementController::class, 'index']);
 Route::post('admin/categories', [CategoryManagementController::class, 'store']);
 Route::put('admin/categories/{id}', [CategoryManagementController::class, 'update']);
 Route::delete('admin/categories/{id}', [CategoryManagementController::class, 'destroy']);
+
+
+
+Route::get('/blogs', [BlogController::class, 'index']);
+Route::get('/blogs/{slug}', [BlogController::class, 'show']);
+Route::post('/blogs', [BlogController::class, 'store']);
+Route::put('/blogs/{id}', [BlogController::class, 'update']);
+Route::delete('/blogs/{id}', [BlogController::class, 'destroy']);
+
 
 
 /*
