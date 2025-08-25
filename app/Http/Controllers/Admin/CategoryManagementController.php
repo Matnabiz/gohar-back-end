@@ -23,7 +23,9 @@ class CategoryManagementController extends Controller
         ]);
 
         // Generate a simple slug just for this category
-        $slug = Str::slug($request->name, '-');
+        $slug = preg_match('/[a-zA-Z]/', $request->name)
+            ? Str::slug($request->name, '-')
+            : str_replace(' ', '-', trim($request->name));
 
         // Ensure slug is unique among siblings
         $query = Category::where('slug', $slug);
