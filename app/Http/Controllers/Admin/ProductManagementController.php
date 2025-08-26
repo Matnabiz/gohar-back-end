@@ -15,7 +15,7 @@ class ProductManagementController extends Controller
             'price'        => 'required|numeric|min:0',
             'description'  => 'nullable|string',
             'category_id'  => 'nullable|exists:categories,id',
-            'active'       => 'boolean',
+            'active'       => 'nullable|boolean',
             'stock'        => 'required|integer|min:0',
             'main_image'   => 'required|image|mimes:jpg,jpeg,png|max:2048',
             'images'       => 'nullable|array',
