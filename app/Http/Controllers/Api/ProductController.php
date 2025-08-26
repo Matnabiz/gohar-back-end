@@ -117,6 +117,8 @@ class ProductController extends Controller
             'main_image' => $product->main_image ? asset('storage/' . $product->main_image) : null,
             'material' => $product->material,
             'color' => $product->color,
+            'active' => $product->active,
+            'stock' => $product->stock
         ];
 
         // Add category data if available
