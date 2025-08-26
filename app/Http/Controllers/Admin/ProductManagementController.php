@@ -8,7 +8,8 @@ use Illuminate\Http\Request;
 
 class ProductManagementController extends Controller
 {
-    public function store(Request $request){
+    public function store(Request $request)
+    {
         $validated = $request->validate([
             'title'        => 'required|string|max:255',
             'price'        => 'required|numeric|min:0',
@@ -16,36 +17,31 @@ class ProductManagementController extends Controller
             'category_id'  => 'nullable|exists:categories,id',
             'active'       => 'boolean',
             'stock'        => 'required|integer|min:0',
-            'main_image' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+            'main_image'   => 'required|image|mimes:jpg,jpeg,png|max:2048',
             'images'       => 'nullable|array',
             'images.*'     => 'string|max:255',
-            'color'     => 'string|max:255',
-            'dimensions'     => 'string|max:255',
-            'material'     => 'string|max:255',
-
+            'color'        => 'nullable|string|max:255',
+            'dimensions'   => 'nullable|string|max:255',
+            'material'     => 'nullable|string|max:255',
         ]);
 
+        // Handle main image upload
         if ($request->hasFile('main_image')) {
             $path = $request->file('main_image')->store('products', 'public');
+            $validated['main_image'] = $path;
         }
 
-        $product = Product::create([
-            'title' => $request->title,
-            'price' => $request->price,
-            'description' => $request->description,
-            'category_id' => $request->category_id,
-            'stock' => $request->stock,
-            'color' => $request->color,
-            'dimensions' => $request->dimensions,
-            'material' => $request->material,
-            'main_image' => $path ?? null,
-        ]);
+        $product = Product::create($validated);
 
         return response()->json([
             'message' => 'Product created successfully',
-            'data'    => $product
+            'data'    => $product->toArray() + [
+                    // Return full image URL
+                    'main_image_url' => asset('storage/' . $product->main_image),
+                ]
         ], 201);
     }
+
     public function index()
     {
         return Product::all();
