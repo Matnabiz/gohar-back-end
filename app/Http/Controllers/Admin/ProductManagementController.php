@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductManagementController extends Controller
 {
@@ -41,12 +42,12 @@ class ProductManagementController extends Controller
                 ]
         ], 201);
     }
-
     public function index()
     {
         return Product::all();
     }
-    public function update(Request $request, $id){
+    public function update(Request $request, $id)
+    {
         $product = Product::find($id);
 
         if (!$product) {
@@ -60,9 +61,9 @@ class ProductManagementController extends Controller
             'price'        => 'sometimes|required|numeric|min:0',
             'description'  => 'nullable|string',
             'category_id'  => 'nullable|exists:categories,id',
-            'active'       => 'boolean',
+            'active'       => 'nullable|boolean',
             'stock'        => 'sometimes|required|integer|min:0',
-            'main_image'   => 'nullable|string|max:255',
+            'main_image'   => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'images'       => 'nullable|array',
             'images.*'     => 'string|max:255',
             'color'        => 'nullable|string|max:255',
@@ -70,11 +71,26 @@ class ProductManagementController extends Controller
             'material'     => 'nullable|string|max:255',
         ]);
 
+        // Handle main image upload if a new file is present
+        if ($request->hasFile('main_image')) {
+            // Delete old image if it exists
+            if ($product->main_image) {
+                Storage::disk('public')->delete($product->main_image);
+            }
+
+            // Store the new image
+            $path = $request->file('main_image')->store('products', 'public');
+            $validated['main_image'] = $path;
+        }
+
         $product->update($validated);
 
         return response()->json([
             'message' => 'Product updated successfully',
-            'data'    => $product
+            'data'    => $product->toArray() + [
+                    // Return full image URL
+                    'main_image_url' => asset('storage/' . $product->main_image),
+                ]
         ], 200);
     }
     public function destroy($id)
