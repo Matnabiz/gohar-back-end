@@ -16,7 +16,7 @@ class ProductManagementController extends Controller
             'category_id'  => 'nullable|exists:categories,id',
             'active'       => 'boolean',
             'stock'        => 'required|integer|min:0',
-            'main_image'   => 'nullable|string|max:255',
+            'main_image' => 'required|image|mimes:jpg,jpeg,png|max:2048',
             'images'       => 'nullable|array',
             'images.*'     => 'string|max:255',
             'color'     => 'string|max:255',
@@ -25,7 +25,21 @@ class ProductManagementController extends Controller
 
         ]);
 
-        $product = Product::create($validated);
+        if ($request->hasFile('main_image')) {
+            $path = $request->file('main_image')->store('products', 'public');
+        }
+
+        $product = Product::create([
+            'title' => $request->title,
+            'price' => $request->price,
+            'description' => $request->description,
+            'category_id' => $request->category_id,
+            'stock' => $request->stock,
+            'color' => $request->color,
+            'dimensions' => $request->dimensions,
+            'material' => $request->material,
+            'main_image' => $path ?? null,
+        ]);
 
         return response()->json([
             'message' => 'Product created successfully',
