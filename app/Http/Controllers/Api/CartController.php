@@ -13,15 +13,24 @@ class CartController extends Controller {
         return $cart;
     }
 
-    public function show(Request $request){
+    public function show(Request $request)
+    {
         $cart = $this->currentCart($request);
-        $cart->load('items.product.images');
-        $cart->items->transform(function($it){
-            $it->product->images = $it->product->images->map(fn($img)=> asset('storage/'.$img->path));
+
+        // Load products with each cart item
+        $cart->load('items.product');
+
+        // Transform products to include main_image_url
+        $cart->items->transform(function ($it) {
+            $it->product->main_image_url = $it->product->main_image
+                ? asset('storage/' . $it->product->main_image)
+                : asset('images/placeholder.png');
             return $it;
         });
+
         return response()->json($cart);
     }
+
 
     public function add(Request $request){
         $data = $request->validate([
@@ -50,15 +59,16 @@ class CartController extends Controller {
             'item_id'=>'required|exists:cart_items,id',
             'quantity'=>'required|integer|min:1'
         ]);
-        $item = CartItem::findOrFail($data['item_id']);
+        $cart = $this->currentCart($request);
+        $item = $cart->items()->where('id', $data['item_id'])->firstOrFail();
         $item->quantity = $data['quantity'];
         $item->save();
-        return response()->json(['ok'=>true]);
+        return $this->show($request);
     }
 
     public function remove(Request $request){
         $data = $request->validate(['item_id'=>'required|exists:cart_items,id']);
         CartItem::findOrFail($data['item_id'])->delete();
-        return response()->json(['ok'=>true]);
+        return $this->show($request);
     }
 }

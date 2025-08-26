@@ -11,7 +11,10 @@ class User extends Authenticatable
 {
     use HasApiTokens, Notifiable;
     use HasFactory;
-
+    public function cart()
+    {
+        return $this->hasOne(Cart::class);
+    }
     protected $fillable = [
         'name',
         'email',
