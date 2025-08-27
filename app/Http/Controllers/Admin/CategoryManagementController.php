@@ -11,7 +11,10 @@ class CategoryManagementController extends Controller
 {
     public function index()
     {
-        $categories = Category::whereNull('parent_id')->with('children')->get();
+        $categories = Category::whereNull('parent_id')
+            ->orderBy('sort_order', 'asc')
+            ->with('children')
+            ->get();
         return response()->json($categories);
     }
 
@@ -100,6 +103,17 @@ class CategoryManagementController extends Controller
             'id' => $category->id,
             'breadcrumb' => $category->breadcrumb
         ]);
+    }
+
+    public function updateOrder(Request $request){
+        $categories = $request->input('categories');
+
+        foreach ($categories as $cat) {
+            Category::where('id', $cat['id'])
+                ->update(['sort_order' => $cat['sort_order']]);
+        }
+
+        return response()->json(['status' => 'success']);
     }
 
 }

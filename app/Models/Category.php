@@ -5,11 +5,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class Category extends Model
 {
-    protected $fillable = ['name', 'parent_id', 'slug'];
+    protected $fillable = ['name', 'parent_id', 'slug', 'sort_order'];
 
     public function children()
     {
-        return $this->hasMany(Category::class, 'parent_id')->with('children');
+        return $this->hasMany(Category::class, 'parent_id')
+            ->orderBy('sort_order', 'asc')
+            ->with('children');
     }
 
     public function products()

@@ -70,6 +70,7 @@ Route::get('admin/categories', [CategoryManagementController::class, 'index']);
 Route::post('admin/categories', [CategoryManagementController::class, 'store']);
 Route::put('admin/categories/{id}', [CategoryManagementController::class, 'update']);
 Route::delete('admin/categories/{id}', [CategoryManagementController::class, 'destroy']);
+Route::post('/admin/categories/order', [CategoryManagementController::class, 'updateOrder']);
 
 
 
