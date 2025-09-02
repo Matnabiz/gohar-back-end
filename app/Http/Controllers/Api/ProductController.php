@@ -34,6 +34,15 @@ class ProductController extends Controller
     /**
      * Display products by category slug.
      */
+
+    public function allProducts(){
+        $products = Product::all();
+        $products->transform(function ($product) {
+            return $this->formatProduct($product);
+        });
+        return response()->json($products);
+    }
+
     public function byCategory($path = null)
     {
         // If no path is provided, return all products.
