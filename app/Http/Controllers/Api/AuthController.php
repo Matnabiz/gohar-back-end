@@ -45,7 +45,7 @@ class AuthController extends Controller {
         $data = $request->validate(['email'=>'required|email','password'=>'required']);
         $user = User::where('email', $data['email'])->first();
         if(!$user || !Hash::check($data['password'], $user->password)){
-            throw ValidationException::withMessages(['email'=>['The provided credentials are incorrect.']]);
+            throw ValidationException::withMessages(['email'=>['ایمیل یا رمز عبور، اشتباه است.']]);
         }
         // create token or use Sanctum cookie
         $token = $user->createToken('api-token')->plainTextToken;
