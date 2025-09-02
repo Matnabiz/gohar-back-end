@@ -30,5 +30,13 @@ class Product extends Model
     public function category() {
         return $this->belongsTo(Category::class);
     }
+    protected static function booted()
+    {
+        static::created(function ($product) {
+            $product->external_code = str_pad($product->id, 4, '0', STR_PAD_LEFT);
+            $product->saveQuietly();
+        });
+    }
+
 }
 
