@@ -55,10 +55,10 @@ Route::middleware('auth:sanctum')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::get('products', [ProductController::class, 'index']);
+Route::get('/products/all-products', [ProductController::class, 'allProducts']);
 Route::get('products/{product}', [ProductController::class, 'show']);
 Route::get('/products/categories/{path?}', [ProductController::class, 'byCategory'])
     ->where('path', '.*');
-Route::get('/products/all-products', [ProductController::class, 'allProducts']);
 
 Route::post('admin/users', [UserManagementController::class, 'store']);
 Route::get('admin/users', [UserManagementController::class, 'index']);
