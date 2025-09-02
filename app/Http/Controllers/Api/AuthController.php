@@ -12,8 +12,8 @@ class AuthController extends Controller {
     {
         try {
             $validated = $request->validate([
-                'name' => 'required|string|max:255',
-                'email' => 'required|string|email|max:255|unique:users',
+                'email'    => 'nullable|string|email|max:255|unique:users|required_without:phone',
+                'phone'    => 'nullable|string|regex:/^[0-9]{10,15}$/|unique:users|required_without:email',
                 'password' => 'required|string|min:8|confirmed',
             ]);
         } catch (ValidationException $e) {
@@ -24,8 +24,8 @@ class AuthController extends Controller {
         }
 
         $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
+            'email' => $validated['email'] ?? null,
+            'phone' => $validated['phone'] ?? null,
             'password' => Hash::make($validated['password']),
         ]);
 
