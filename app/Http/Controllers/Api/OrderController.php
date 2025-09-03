@@ -10,28 +10,13 @@ class OrderController extends Controller
 {
     public function index(Request $request)
     {
-        $user = $request->user();
-
-        if ($user->is_admin) {
-            // admin: see all orders
-            $orders = Order::with('items.product', 'user')->latest()->get();
-        } else {
-            // user: only see their own
-            $orders = $user->orders()->with('items.product')->latest()->get();
-        }
-
+        $orders = Order::with('items.product', 'user')->latest()->get();
         return response()->json($orders);
     }
 
     public function show(Request $request, $id)
     {
         $order = Order::with('items.product', 'user')->findOrFail($id);
-
-        // if not admin, restrict to own order
-        if (!$request->user()->is_admin && $order->user_id !== $request->user()->id) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
         return response()->json($order);
     }
 
