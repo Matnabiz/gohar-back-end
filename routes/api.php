@@ -45,12 +45,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('cart/update', [CartController::class, 'update']);
     Route::post('cart/remove', [CartController::class, 'remove']);
 
-    // Orders
-    Route::post('orders', [OrderController::class, 'store']);
-    Route::get('orders', [OrderController::class, 'index']);
-    Route::get('orders/{id}', [OrderController::class, 'show']);
-    Route::put('orders', [OrderController::class, 'update']);
-    Route::delete('orders', [OrderController::class, 'destroy']);
+
 
 });
 
@@ -84,6 +79,13 @@ Route::get('/blogs/{slug}', [BlogController::class, 'show']);
 Route::post('/blogs', [BlogController::class, 'store']);
 Route::put('/blogs/{id}', [BlogController::class, 'update']);
 Route::delete('/blogs/{id}', [BlogController::class, 'destroy']);
+
+// Orders
+Route::post('orders', [OrderController::class, 'store']);
+Route::get('orders', [OrderController::class, 'index']);
+Route::get('orders/{id}', [OrderController::class, 'show']);
+Route::put('orders', [OrderController::class, 'update']);
+Route::delete('orders', [OrderController::class, 'destroy']);
 
 
 
