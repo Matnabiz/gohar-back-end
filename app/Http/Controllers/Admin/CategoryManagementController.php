@@ -23,14 +23,17 @@ class CategoryManagementController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'parent_id' => 'nullable|exists:categories,id',
+            'slug' => 'nullable|string|max:255',
         ]);
 
-        // Generate a simple slug just for this category
-        $slug = preg_match('/[a-zA-Z]/', $request->name)
-            ? Str::slug($request->name, '-')
-            : str_replace(' ', '-', trim($request->name));
+        if ($request->filled('slug')) {
+            $slug = Str::slug($request->slug, '-');
+        } else {
+            $slug = preg_match('/[a-zA-Z]/', $request->name)
+                ? Str::slug($request->name, '-')
+                : str_replace(' ', '-', trim($request->name));
+        }
 
-        // Ensure slug is unique among siblings
         $query = Category::where('slug', $slug);
         if ($request->parent_id) {
             $query->where('parent_id', $request->parent_id);
@@ -47,11 +50,12 @@ class CategoryManagementController extends Controller
         $category = Category::create([
             'name' => $request->name,
             'parent_id' => $request->parent_id,
-            'slug' => $slug
+            'slug' => $slug,
         ]);
 
         return response()->json($category, 201);
     }
+
 
     public function update(Request $request, $id){
         $category = Category::findOrFail($id);
