@@ -39,29 +39,22 @@ class AuthController extends Controller {
 
     public function login(Request $request)
     {
-        // ✅ Validate: require password, and at least one of email or phone
         $data = $request->validate([
-            'email'    => 'nullable|email',
-            'phone'    => 'nullable|string',
+            'email'    => 'nullable|email|required_without:phone',
+            'phone'    => 'nullable|string|required_without:email',
             'password' => 'required|string',
         ]);
 
-        if (empty($data['email']) && empty($data['phone'])) {
-            throw ValidationException::withMessages([
-                'login' => ['لطفاً ایمیل یا شماره تلفن خود را وارد کنید.'],
-            ]);
-        }
-        $user = null;
-        if (!empty($data['email'])) {
-            $user = User::where('email', $data['email'])->first();
-        } elseif (!empty($data['phone'])) {
-            $user = User::where('phone', $data['phone'])->first();
-        }
+        $user = User::where('email', $data['email'] ?? '')
+            ->orWhere('phone', $data['phone'] ?? '')
+            ->first();
+
         if (!$user || !Hash::check($data['password'], $user->password)) {
             throw ValidationException::withMessages([
                 'login' => ['ایمیل/شماره تلفن یا رمز عبور اشتباه است.'],
             ]);
         }
+
         $token = $user->createToken('api-token')->plainTextToken;
 
         return response()->json([
@@ -69,6 +62,7 @@ class AuthController extends Controller {
             'token' => $token,
         ]);
     }
+
 
     public function logout(Request $request){
         $request->user()->currentAccessToken()->delete();
