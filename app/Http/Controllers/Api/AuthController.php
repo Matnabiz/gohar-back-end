@@ -39,9 +39,10 @@ class AuthController extends Controller {
 
     public function login(Request $request)
     {
+        // ✅ Validate: require password, and at least one of email or phone
         $data = $request->validate([
-            'email'    => 'nullable|email|required_without:phone',
-            'phone'    => 'nullable|string|required_without:email',
+            'email'    => 'nullable|email',
+            'phone'    => 'nullable|string',
             'password' => 'required|string',
         ]);
 
