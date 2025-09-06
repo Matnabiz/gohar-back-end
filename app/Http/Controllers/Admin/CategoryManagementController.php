@@ -56,7 +56,6 @@ class CategoryManagementController extends Controller
         return response()->json($category, 201);
     }
 
-
     public function update(Request $request, $id){
         $category = Category::findOrFail($id);
 
