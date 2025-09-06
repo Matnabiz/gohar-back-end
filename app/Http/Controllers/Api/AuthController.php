@@ -37,15 +37,36 @@ class AuthController extends Controller {
         ]);
     }
 
-    public function login(Request $request){
-        $data = $request->validate(['email'=>'required|email','password'=>'required']);
-        $user = User::where('email', $data['email'])->first();
-        if(!$user || !Hash::check($data['password'], $user->password)){
-            throw ValidationException::withMessages(['email'=>['ایمیل یا رمز عبور، اشتباه است.']]);
+    public function login(Request $request)
+    {
+        $data = $request->validate([
+            'email'    => 'nullable|email|required_without:phone',
+            'phone'    => 'nullable|string|required_without:email',
+            'password' => 'required|string',
+        ]);
+
+        if (empty($data['email']) && empty($data['phone'])) {
+            throw ValidationException::withMessages([
+                'login' => ['لطفاً ایمیل یا شماره تلفن خود را وارد کنید.'],
+            ]);
         }
-        // create token or use Sanctum cookie
+        $user = null;
+        if (!empty($data['email'])) {
+            $user = User::where('email', $data['email'])->first();
+        } elseif (!empty($data['phone'])) {
+            $user = User::where('phone', $data['phone'])->first();
+        }
+        if (!$user || !Hash::check($data['password'], $user->password)) {
+            throw ValidationException::withMessages([
+                'login' => ['ایمیل/شماره تلفن یا رمز عبور اشتباه است.'],
+            ]);
+        }
         $token = $user->createToken('api-token')->plainTextToken;
-        return response()->json(['user'=>$user, 'token'=>$token]);
+
+        return response()->json([
+            'user'  => $user,
+            'token' => $token,
+        ]);
     }
 
     public function logout(Request $request){
