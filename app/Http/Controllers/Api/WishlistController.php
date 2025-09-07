@@ -12,12 +12,15 @@ class WishlistController extends Controller
     {
         $user = $request->user();
         $wishlistItems = $user->wishlist;
+
         $products = $wishlistItems->map(function ($item) {
+            if (!$item->product) return null;
             return $this->formatProduct($item->product);
-        });
+        })->filter();
 
         return response()->json($products->values());
     }
+
 
     private function formatProduct($product){
         $data = [
