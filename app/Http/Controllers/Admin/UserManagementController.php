@@ -39,7 +39,6 @@ class UserManagementController extends Controller
         $user->update($validated);
         return $user;
     }
-
     public function destroy(User $user){
         $user->delete();
         return response()->json(['message' => 'User deleted']);

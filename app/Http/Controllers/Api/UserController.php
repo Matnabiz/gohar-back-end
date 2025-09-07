@@ -14,14 +14,13 @@ class UserController extends Controller
     public function update(Request $request){
         $user = $request->user();
         $data = $request->validate([
-            'name' => 'required|string|max:120',
+            'name' => 'nullable|string|max:120',
             'phone' => 'nullable|string|max:30',
             'shipping_address' => 'nullable|string|max:500',
-            'billing_address' => 'nullable|string|max:500',
             'preferences' => 'nullable|array',
         ]);
         $user->fill($data)->save();
-        return new UserResource($user->fresh());
+        return response()->json($request->user());
     }
 
     public function updateAvatar(Request $request){
