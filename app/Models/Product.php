@@ -30,6 +30,10 @@ class Product extends Model
     public function category() {
         return $this->belongsTo(Category::class);
     }
+    public function wishedBy(){
+        return $this->belongsToMany(User::class, 'wishlists')->withTimestamps();
+    }
+
     protected static function booted()
     {
         static::created(function ($product) {

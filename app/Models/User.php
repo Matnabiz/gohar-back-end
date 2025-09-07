@@ -17,6 +17,10 @@ class User extends Authenticatable
     {
         return $this->hasOne(Cart::class);
     }
+    public function wishlist(){
+        return $this->belongsToMany(Product::class, 'wishlists')->withTimestamps();
+    }
+
     protected $fillable = [
         'name',
         'email',
