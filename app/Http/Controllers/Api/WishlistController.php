@@ -46,17 +46,15 @@ class WishlistController extends Controller
         return $data;
     }
 
-    public function store(Request $request, $productId)
-    {
+    public function store(Request $request, $productId){
         $product = Product::findOrFail($productId);
-        $request->user()->wishlist()->syncWithoutDetaching([$product->id]);
+        $request->user()->wishlists()->syncWithoutDetaching([$product->id]);
 
         return response()->json(['message' => 'Added to wishlist']);
     }
 
-    public function destroy(Request $request, $productId)
-    {
-        $request->user()->wishlist()->detach($productId);
+    public function destroy(Request $request, $productId){
+        $request->user()->wishlists()->detach($productId);
 
         return response()->json(['message' => 'Removed from wishlist']);
     }
