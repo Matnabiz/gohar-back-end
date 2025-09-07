@@ -13,9 +13,9 @@ class WishlistController extends Controller
         $user = $request->user();
         $wishlistItems = $user->wishlists()->get();
 
-        $products = $wishlistItems->map(function ($item) {
-            if (!$item->product) return null;
-            return $this->formatProduct($item->product);
+        $products = $wishlistItems->map(function ($product) {
+            if (!$product) return null;
+            return $this->formatProduct($product);
         })->filter();
 
         return response()->json($products->values());
