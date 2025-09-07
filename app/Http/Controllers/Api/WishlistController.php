@@ -10,7 +10,37 @@ class WishlistController extends Controller
 {
     public function index(Request $request)
     {
-        return response()->json($request->user()->wishlist()->get());
+        $user = $request->user();
+        $wishlistItems = $user->wishlist()->with('product')->get();
+        $products = $wishlistItems->map(function ($item) {
+            return $this->formatProduct($item->product);
+        });
+
+        return response()->json($products);
+    }
+
+    private function formatProduct($product){
+        $data = [
+            'id' => $product->id,
+            'title' => $product->title,
+            'price' => $product->price,
+            'description' => $product->description,
+            'main_image' => $product->main_image ? asset('storage/' . $product->main_image) : null,
+            'material' => $product->material,
+            'color' => $product->color,
+            'active' => $product->active,
+            'stock' => $product->stock,
+        ];
+
+        if ($product->category) {
+            $data['category'] = [
+                'id' => $product->category->id,
+                'name' => $product->category->name,
+                'breadcrumb' => $product->category->breadcrumb,
+            ];
+        }
+
+        return $data;
     }
 
     public function store(Request $request, $productId)
