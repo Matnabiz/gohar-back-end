@@ -11,7 +11,7 @@ class User extends Authenticatable
 {
     use HasApiTokens, Notifiable;
     use HasFactory;
-    public function wishlists(){
+    public function wishlist(){
         return $this->belongsToMany(Product::class, 'wishlists', 'user_id', 'product_id')
             ->withTimestamps();
     }
