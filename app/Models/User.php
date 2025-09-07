@@ -11,14 +11,14 @@ class User extends Authenticatable
 {
     use HasApiTokens, Notifiable;
     use HasFactory;
-
+    public function wishlist(){
+        return $this->belongsToMany(Product::class, 'wishlist', 'user_id', 'product_id')
+            ->withTimestamps();
+    }
     public function orders() { return $this->hasMany(Order::class); }
     public function cart()
     {
         return $this->hasOne(Cart::class);
-    }
-    public function wishlist(){
-        return $this->belongsToMany(Product::class, 'wishlists')->withTimestamps();
     }
 
     protected $fillable = [

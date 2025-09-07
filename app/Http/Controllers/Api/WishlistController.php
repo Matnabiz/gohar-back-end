@@ -11,7 +11,7 @@ class WishlistController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $wishlistItems = $user->wishlist()->with('product')->get();
+        $wishlistItems = $user->wishlist;
         $products = $wishlistItems->map(function ($item) {
             return $this->formatProduct($item->product);
         });
