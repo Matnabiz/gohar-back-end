@@ -16,7 +16,7 @@ class UserController extends Controller
         $data = $request->validate([
             'name' => 'nullable|string|max:120',
             'phone' => 'nullable|string|max:30',
-            'shipping_address' => 'nullable|string|max:500',
+            'address' => 'nullable|string|max:500',
             'preferences' => 'nullable|array',
         ]);
         $user->fill($data)->save();
