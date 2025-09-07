@@ -13,7 +13,7 @@ class ProductManagementController extends Controller
     {
         $validated = $request->validate([
             'title'        => 'required|string|max:255',
-            'price'        => 'required|numeric|min:0',
+            'price'        => 'nullable|numeric|min:0',
             'description'  => 'nullable|string',
             'category_id'  => 'nullable|exists:categories,id',
             'active'       => 'nullable|boolean',
