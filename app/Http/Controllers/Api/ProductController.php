@@ -121,7 +121,7 @@ class ProductController extends Controller
         $data = [
             'id' => $product->id,
             'title' => $product->title,
-            'price' => $product->price,
+            'price' => $product->price ? $product->price : null,
             'description' => $product->description,
             'main_image' => $product->main_image ? asset('storage/' . $product->main_image) : null,
             'material' => $product->material,
