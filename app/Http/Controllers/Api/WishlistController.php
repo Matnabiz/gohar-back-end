@@ -16,7 +16,7 @@ class WishlistController extends Controller
             return $this->formatProduct($item->product);
         });
 
-        return response()->json($products);
+        return response()->json($products->values());
     }
 
     private function formatProduct($product){
