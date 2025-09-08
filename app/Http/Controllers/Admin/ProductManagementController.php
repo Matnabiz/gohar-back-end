@@ -71,7 +71,7 @@ class ProductManagementController extends Controller
             'stock'        => 'sometimes|required|integer|min:0',
             'main_image'   => 'sometimes|file|image|mimes:jpg,jpeg,png|max:2048',
             'images'       => 'nullable|array',
-            'images.*' => 'image|mimes:jpg,jpeg,png|max:2048',
+            'images.*' =>     'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'color'        => 'nullable|string|max:255',
             'dimensions'   => 'nullable|string|max:255',
             'material'     => 'nullable|string|max:255',

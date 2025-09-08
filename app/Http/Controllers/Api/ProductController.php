@@ -12,7 +12,10 @@ class ProductController extends Controller
      * Display a listing of the products.
      */
     public function index(){
-        $products = Product::where('active', true)->paginate(10);
+        $products = Product::with('images','category.parent')
+            ->where('active', true)
+            ->paginate(10);
+
         $products->getCollection()->transform(function ($product) {
             return $this->formatProduct($product);
         });
@@ -23,10 +26,8 @@ class ProductController extends Controller
     /**
      * Display the specified product.
      */
-    public function show($id)
-    {
-        $product = Product::with('category.parent')->findOrFail($id);
-
+    public function show($id){
+        $product = Product::with('images', 'category.parent')->findOrFail($id);
         return response()->json($this->formatProduct($product));
     }
 
@@ -35,15 +36,12 @@ class ProductController extends Controller
      */
 
     public function allProducts(){
-        $products = Product::all();
-        $products->transform(function ($product) {
-            return $this->formatProduct($product);
-        });
+        $products = Product::with('images','category.parent')->get();
+        $products->transform(fn($product) => $this->formatProduct($product));
         return response()->json($products);
     }
 
-    public function byCategory($path = null)
-    {
+    public function byCategory($path = null){
         // If no path is provided, return all products.
         if (!$path) {
             $products = Product::all();
@@ -116,30 +114,31 @@ class ProductController extends Controller
      * @return array
      */
     private function formatProduct(Product $product){
-        $images = $product->images ?? collect(); // make sure it's a collection
+        // ensure images relation is loaded or fetch it
+        $imagesCollection = $product->relationLoaded('images') ? $product->images : $product->images()->get();
 
-        $data = [
-            'id'          => $product->id,
-            'title'       => $product->title,
-            'price'       => $product->price,
+        $imagesUrls = $imagesCollection->map(function ($img) {
+            // img->path is stored like "products/abc.jpg", ensure we trim slashes
+            return asset('storage/' . ltrim($img->path, '/'));
+        })->values()->toArray();
+
+        return [
+            'id' => $product->id,
+            'title' => $product->title,
+            'price' => $product->price,
             'description' => $product->description,
-            'main_image'  => $product->main_image ? asset('storage/' . $product->main_image) : null,
-            'images'      => $images->map(fn($img) => asset('storage/' . $img->path))->toArray(),
-            'material'    => $product->material,
-            'color'       => $product->color,
-            'active'      => $product->active,
-            'stock'       => $product->stock,
-        ];
-
-        if ($product->category) {
-            $data['category'] = [
+            'main_image' => $product->main_image ? asset('storage/' . ltrim($product->main_image, '/')) : null,
+            'images' => $imagesUrls,
+            'material' => $product->material,
+            'color' => $product->color,
+            'active' => $product->active,
+            'stock' => $product->stock,
+            'category' => $product->category ? [
                 'id' => $product->category->id,
                 'name' => $product->category->name,
                 'breadcrumb' => $product->category->breadcrumb,
-            ];
-        }
-
-        return $data;
+            ] : null,
+        ];
     }
 
 

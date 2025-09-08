@@ -17,7 +17,6 @@ class Product extends Model
         'active',
         'stock',
         'main_image',
-        'images',
         'dimensions',
         'material',
         'color'
