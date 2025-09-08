@@ -9,8 +9,7 @@ use Illuminate\Support\Facades\Storage;
 
 class ProductManagementController extends Controller
 {
-    public function store(Request $request)
-    {
+    public function store(Request $request){
         $validated = $request->validate([
             'title'        => 'required|string|max:255',
             'price'        => 'nullable|numeric|min:0',
@@ -46,7 +45,6 @@ class ProductManagementController extends Controller
     {
         return Product::orderBy('created_at', 'desc')->get();
     }
-
     public function update(Request $request, $id)
     {
         $product = Product::find($id);
@@ -64,7 +62,7 @@ class ProductManagementController extends Controller
             'category_id'  => 'nullable|exists:categories,id',
             'active'       => 'nullable|boolean',
             'stock'        => 'sometimes|required|integer|min:0',
-            'main_image'   => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'main_image'   => 'sometimes|file|image|mimes:jpg,jpeg,png|max:2048',
             'images'       => 'nullable|array',
             'images.*'     => 'string|max:255',
             'color'        => 'nullable|string|max:255',
