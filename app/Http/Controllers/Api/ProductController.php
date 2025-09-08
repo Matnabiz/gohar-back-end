@@ -116,13 +116,15 @@ class ProductController extends Controller
      * @return array
      */
     private function formatProduct(Product $product){
+        $images = $product->images ?? collect(); // make sure it's a collection
+
         $data = [
             'id'          => $product->id,
             'title'       => $product->title,
             'price'       => $product->price,
             'description' => $product->description,
             'main_image'  => $product->main_image ? asset('storage/' . $product->main_image) : null,
-            'images'      => $product->images->map(fn($img) => asset('storage/' . $img->path))->toArray(),
+            'images'      => $images->map(fn($img) => asset('storage/' . $img->path))->toArray(),
             'material'    => $product->material,
             'color'       => $product->color,
             'active'      => $product->active,
@@ -139,5 +141,6 @@ class ProductController extends Controller
 
         return $data;
     }
+
 
 }
