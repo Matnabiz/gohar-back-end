@@ -22,11 +22,9 @@ class Product extends Model
         'material',
         'color'
     ];
-
-    protected $casts = [
-        'images' => 'array'
-    ];
-
+    public function images(){
+        return $this->hasMany(ProductImage::class);
+    }
     public function category() {
         return $this->belongsTo(Category::class);
     }

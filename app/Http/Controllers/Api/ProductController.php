@@ -11,8 +11,7 @@ class ProductController extends Controller
     /**
      * Display a listing of the products.
      */
-    public function index()
-    {
+    public function index(){
         $products = Product::where('active', true)->paginate(10);
         $products->getCollection()->transform(function ($product) {
             return $this->formatProduct($product);
@@ -116,21 +115,20 @@ class ProductController extends Controller
      * @param \App\Models\Product $product
      * @return array
      */
-    private function formatProduct(Product $product)
-    {
+    private function formatProduct(Product $product){
         $data = [
-            'id' => $product->id,
-            'title' => $product->title,
-            'price' => $product->price ? $product->price : null,
+            'id'          => $product->id,
+            'title'       => $product->title,
+            'price'       => $product->price,
             'description' => $product->description,
-            'main_image' => $product->main_image ? asset('storage/' . $product->main_image) : null,
-            'material' => $product->material,
-            'color' => $product->color,
-            'active' => $product->active,
-            'stock' => $product->stock
+            'main_image'  => $product->main_image ? asset('storage/' . $product->main_image) : null,
+            'images'      => $product->images->map(fn($img) => asset('storage/' . $img->path))->toArray(),
+            'material'    => $product->material,
+            'color'       => $product->color,
+            'active'      => $product->active,
+            'stock'       => $product->stock,
         ];
 
-        // Add category data if available
         if ($product->category) {
             $data['category'] = [
                 'id' => $product->category->id,
@@ -141,4 +139,5 @@ class ProductController extends Controller
 
         return $data;
     }
+
 }

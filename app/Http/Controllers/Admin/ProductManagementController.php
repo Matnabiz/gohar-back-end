@@ -19,7 +19,7 @@ class ProductManagementController extends Controller
             'stock'        => 'required|integer|min:0',
             'main_image'   => 'required|image|mimes:jpg,jpeg,png|max:2048',
             'images'       => 'nullable|array',
-            'images.*'     => 'string|max:255',
+            'images.*' => 'image|mimes:jpg,jpeg,png|max:2048',
             'color'        => 'nullable|string|max:255',
             'dimensions'   => 'nullable|string|max:255',
             'material'     => 'nullable|string|max:255',
@@ -33,6 +33,14 @@ class ProductManagementController extends Controller
 
         $product = Product::create($validated);
 
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $file) {
+                $path = $file->store('products', 'public');
+                $product->images()->create(['path' => $path]);
+            }
+        }
+
+
         return response()->json([
             'message' => 'Product created successfully',
             'data'    => $product->toArray() + [
@@ -45,8 +53,7 @@ class ProductManagementController extends Controller
     {
         return Product::orderBy('created_at', 'desc')->get();
     }
-    public function update(Request $request, $id)
-    {
+    public function update(Request $request, $id){
         $product = Product::find($id);
 
         if (!$product) {
@@ -64,7 +71,7 @@ class ProductManagementController extends Controller
             'stock'        => 'sometimes|required|integer|min:0',
             'main_image'   => 'sometimes|file|image|mimes:jpg,jpeg,png|max:2048',
             'images'       => 'nullable|array',
-            'images.*'     => 'string|max:255',
+            'images.*' => 'image|mimes:jpg,jpeg,png|max:2048',
             'color'        => 'nullable|string|max:255',
             'dimensions'   => 'nullable|string|max:255',
             'material'     => 'nullable|string|max:255',
@@ -76,12 +83,14 @@ class ProductManagementController extends Controller
             if ($product->main_image) {
                 Storage::disk('public')->delete($product->main_image);
             }
-
             // Store the new image
             $path = $request->file('main_image')->store('products', 'public');
             $validated['main_image'] = $path;
         }
-
+        foreach ($request->file('images') as $file) {
+            $path = $file->store('products', 'public');
+            $product->images()->create(['path' => $path]);
+        }
         $product->update($validated);
 
         return response()->json([
