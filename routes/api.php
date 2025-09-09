@@ -88,14 +88,14 @@ Route::post('/admin/categories/order', [CategoryManagementController::class, 'up
 
 
 
-Route::get('/blogs', [BlogController::class, 'index']);
-Route::get('/blogs/{slug}', [BlogController::class, 'show']);
-Route::post('/blogs', [BlogController::class, 'store']);
-Route::put('/blogs/{id}', [BlogController::class, 'update']);
-Route::delete('/blogs/{id}', [BlogController::class, 'destroy']);
+Route::get('/blogs', [BlogController::class, 'index']);          // List all blogs
+Route::get('/blogs/{slug}', [BlogController::class, 'show']);    // Show a single blog by slug
+Route::post('/blogs', [BlogController::class, 'store']);         // Create a new blog
+Route::put('/blogs/{id}', [BlogController::class, 'update']);    // Update a blog by ID
+Route::delete('/blogs/{id}', [BlogController::class, 'destroy']); // Delete a blog by ID
 
-Route::post('blogs/upload-image', [BlogController::class, 'uploadImage']);
-Route::apiResource('blogs', BlogController::class);
+// Image upload route
+Route::post('/blogs/upload-image', [BlogController::class, 'uploadImage']);
 
 
 
