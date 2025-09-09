@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Blog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Mews\Purifier\Facades\Purifier;
 
 class BlogController extends Controller
 {
