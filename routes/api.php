@@ -94,6 +94,12 @@ Route::post('/blogs', [BlogController::class, 'store']);
 Route::put('/blogs/{id}', [BlogController::class, 'update']);
 Route::delete('/blogs/{id}', [BlogController::class, 'destroy']);
 
+Route::post('blogs/upload-image', [BlogController::class, 'uploadImage']);
+Route::apiResource('blogs', BlogController::class);
+
+
+
+
 // Orders
 Route::post('orders', [OrderController::class, 'store']);
 Route::get('orders', [OrderController::class, 'index']);

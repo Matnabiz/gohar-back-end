@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api;
-
+use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
 use App\Models\Blog;
 use Illuminate\Http\Request;
@@ -23,19 +23,29 @@ class BlogController extends Controller
     }
 
     // POST create a blog
-    public function store(Request $request)
-    {
+    public function store(Request $request){
         $validatedData = $request->validate([
-            'title' => 'required|string|max:255',
+            'title'   => 'required|string|max:255',
             'content' => 'required|string',
-            'image' => 'nullable|string'
+            'image'   => 'nullable|string',
         ]);
 
+        // sanitize HTML content using Purifier
+        $cleanContent = Purifier::clean($validatedData['content']);
+
+        // make slug unique
+        $slug = Str::slug($validatedData['title']);
+        $original = $slug;
+        $i = 1;
+        while (Blog::where('slug', $slug)->exists()) {
+            $slug = $original . '-' . $i++;
+        }
+
         $blog = Blog::create([
-            'title' => $request->get('title'),
-            'content' => $request->get('content'),
-            'slug' => Str::slug($request->get('title')),
-            'image' => $request->get('image')
+            'title'   => $validatedData['title'],
+            'content' => $cleanContent,
+            'slug'    => $slug,
+            'image'   => $validatedData['image'] ?? null,
         ]);
 
         return response()->json($blog, 201);
@@ -46,14 +56,28 @@ class BlogController extends Controller
     {
         $blog = Blog::findOrFail($id);
 
-        $request->validate([
-            'title' => 'sometimes|string|max:255',
+        $validatedData = $request->validate([
+            'title'   => 'sometimes|string|max:255',
             'content' => 'sometimes|string',
-            'image' => 'nullable|string'
+            'image'   => 'nullable|string',
         ]);
 
-        $blog->update($request->all());
+        if (isset($validatedData['content'])) {
+            $validatedData['content'] = Purifier::clean($validatedData['content']);
+        }
 
+        if (isset($validatedData['title'])) {
+            // optionally update slug if title changed
+            $slug = Str::slug($validatedData['title']);
+            $original = $slug;
+            $i = 1;
+            while (Blog::where('slug', $slug)->where('id', '!=', $blog->id)->exists()) {
+                $slug = $original . '-' . $i++;
+            }
+            $validatedData['slug'] = $slug;
+        }
+
+        $blog->update($validatedData);
         return response()->json($blog);
     }
 
@@ -64,5 +88,18 @@ class BlogController extends Controller
         $blog->delete();
 
         return response()->json(null, 204);
+    }
+
+    public function uploadImage(Request $request){
+        $request->validate([
+            'upload' => 'required|image|mimes:jpg,jpeg,png,gif,webp|max:5120', // 5MB
+        ]);
+
+        $file = $request->file('upload');
+        $path = $file->store('blogs', 'public'); // stored in storage/app/public/blogs
+        $url = asset('storage/' . $path);
+
+        // CKEditor 5 expects { "url": "..." }
+        return response()->json(['url' => $url], 201);
     }
 }
