@@ -91,16 +91,16 @@ class BlogController extends Controller
         return response()->json(null, 204);
     }
 
-    public function uploadImage(Request $request){
+    public function uploadImage(Request $request)
+    {
         $request->validate([
-            'upload' => 'required|image|mimes:jpg,jpeg,png,gif,webp|max:5120', // 5MB
+            'image' => 'required|image|mimes:jpg,jpeg,png,gif,webp|max:5120', // 5MB
         ]);
 
-        $file = $request->file('upload');
-        $path = $file->store('blogs', 'public'); // stored in storage/app/public/blogs
+        $file = $request->file('image');
+        $path = $file->store('blogs', 'public'); // storage/app/public/blogs
         $url = asset('storage/' . $path);
 
-        // CKEditor 5 expects { "url": "..." }
         return response()->json(['url' => $url], 201);
     }
 }
