@@ -29,7 +29,7 @@ class BlogController extends Controller
         $validatedData = $request->validate([
             'title'   => 'required|string|max:255',
             'content' => 'required|string',
-            'cover_image' => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:5120', // file upload
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:5120', // file upload
         ]);
 
         // sanitize HTML content
@@ -37,8 +37,8 @@ class BlogController extends Controller
 
         // Handle cover image file upload
         $imageUrl = null;
-        if ($request->hasFile('cover_image')) {
-            $file = $request->file('cover_image');
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
             $path = $file->store('blogs', 'public');
             $imageUrl = asset('storage/' . $path);
         }
