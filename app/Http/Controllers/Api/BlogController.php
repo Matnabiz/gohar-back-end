@@ -29,21 +29,18 @@ class BlogController extends Controller
         $validatedData = $request->validate([
             'title'   => 'required|string|max:255',
             'content' => 'required|string',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:5120', // file upload
+            'image'   => 'required|image|mimes:jpg,jpeg,png,gif,webp|max:5120', // file required
         ]);
 
-        // sanitize HTML content
+        // Sanitize content
         $cleanContent = Purifier::clean($validatedData['content']);
 
-        // Handle cover image file upload
-        $imageUrl = null;
-        if ($request->hasFile('image')) {
-            $file = $request->file('image');
-            $path = $file->store('blogs', 'public');
-            $imageUrl = asset('storage/' . $path);
-        }
+        // Handle file upload
+        $file = $request->file('image');
+        $path = $file->store('blogs', 'public'); // storage/app/public/blogs
+        $imageUrl = asset('storage/' . $path);
 
-        // make slug unique
+        // Make slug unique
         $slug = Str::slug($validatedData['title']);
         $original = $slug;
         $i = 1;
@@ -60,6 +57,7 @@ class BlogController extends Controller
 
         return response()->json($blog, 201);
     }
+
 
 
     // PUT update blog
