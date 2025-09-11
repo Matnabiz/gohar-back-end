@@ -24,15 +24,24 @@ class BlogController extends Controller
     }
 
     // POST create a blog
-    public function store(Request $request){
+    public function store(Request $request)
+    {
         $validatedData = $request->validate([
             'title'   => 'required|string|max:255',
             'content' => 'required|string',
-            'image'   => 'nullable|string',
+            'cover_image' => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:5120', // file upload
         ]);
 
-        // sanitize HTML content using Purifier
+        // sanitize HTML content
         $cleanContent = Purifier::clean($validatedData['content']);
+
+        // Handle cover image file upload
+        $imageUrl = null;
+        if ($request->hasFile('cover_image')) {
+            $file = $request->file('cover_image');
+            $path = $file->store('blogs', 'public');
+            $imageUrl = asset('storage/' . $path);
+        }
 
         // make slug unique
         $slug = Str::slug($validatedData['title']);
@@ -46,11 +55,12 @@ class BlogController extends Controller
             'title'   => $validatedData['title'],
             'content' => $cleanContent,
             'slug'    => $slug,
-            'image'   => $validatedData['image'] ?? null,
+            'image'   => $imageUrl,
         ]);
 
         return response()->json($blog, 201);
     }
+
 
     // PUT update blog
     public function update(Request $request, $id)
@@ -60,15 +70,23 @@ class BlogController extends Controller
         $validatedData = $request->validate([
             'title'   => 'sometimes|string|max:255',
             'content' => 'sometimes|string',
-            'image'   => 'nullable|string',
+            'cover_image' => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:5120',
         ]);
 
+        // sanitize content
         if (isset($validatedData['content'])) {
             $validatedData['content'] = Purifier::clean($validatedData['content']);
         }
 
+        // handle new cover image
+        if ($request->hasFile('cover_image')) {
+            $file = $request->file('cover_image');
+            $path = $file->store('blogs', 'public');
+            $validatedData['image'] = asset('storage/' . $path);
+        }
+
+        // update slug if title changed
         if (isset($validatedData['title'])) {
-            // optionally update slug if title changed
             $slug = Str::slug($validatedData['title']);
             $original = $slug;
             $i = 1;
@@ -81,6 +99,7 @@ class BlogController extends Controller
         $blog->update($validatedData);
         return response()->json($blog);
     }
+
 
     // DELETE blog
     public function destroy($id)
