@@ -66,11 +66,10 @@ class CategoryManagementController extends Controller
         ]);
 
         $slug = $request->filled('slug')
-            ? Str::slug($request->slug, '-')
-            : (preg_match('/[a-zA-Z]/', $request->name)
-                ? Str::slug($request->name, '-')
-                : str_replace(' ', '-', trim($request->name))
-            );
+            ? preg_replace('/[^\p{L}\p{N}\s-]/u', '', $request->slug) // remove unsafe chars
+            : preg_replace('/[^\p{L}\p{N}\s-]/u', '', $request->name);
+
+        $slug = preg_replace('/\s+/u', '-', trim($slug)); // convert spaces to dashes
 
         $query = Category::where('slug', $slug)->where('id', '!=', $id);
         if ($request->parent_id) {
