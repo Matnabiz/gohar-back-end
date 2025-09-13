@@ -61,12 +61,16 @@ class CategoryManagementController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:255',
-            'parent_id' => 'nullable|exists:categories,id|not_in:' . $id, // prevent setting itself as parent
+            'parent_id' => 'nullable|exists:categories,id|not_in:' . $id,
+            'slug' => 'nullable|string|max:255', // add slug validation
         ]);
 
-        $slug = preg_match('/[a-zA-Z]/', $request->name)
-            ? Str::slug($request->name, '-')
-            : str_replace(' ', '-', trim($request->name));
+        $slug = $request->filled('slug')
+            ? Str::slug($request->slug, '-')
+            : (preg_match('/[a-zA-Z]/', $request->name)
+                ? Str::slug($request->name, '-')
+                : str_replace(' ', '-', trim($request->name))
+            );
 
         $query = Category::where('slug', $slug)->where('id', '!=', $id);
         if ($request->parent_id) {
