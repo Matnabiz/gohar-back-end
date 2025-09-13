@@ -90,9 +90,11 @@ Route::post('/admin/categories/order', [CategoryManagementController::class, 'up
 
 Route::get('/blogs', [BlogController::class, 'index']);          // List all blogs
 Route::get('/blogs/{slug}', [BlogController::class, 'show']);    // Show a single blog by slug
+Route::get('/blogs/id/{id}', [BlogController::class, 'showById']);
 Route::post('/blogs', [BlogController::class, 'store']);         // Create a new blog
 Route::put('/blogs/{id}', [BlogController::class, 'update']);    // Update a blog by ID
 Route::delete('/blogs/{id}', [BlogController::class, 'destroy']); // Delete a blog by ID
+Route::get('/blogs/id/{id}', [BlogController::class, 'showById']);
 
 // Image upload route
 Route::post('/blogs/upload-image', [BlogController::class, 'uploadImage']);

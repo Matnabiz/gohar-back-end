@@ -16,6 +16,12 @@ class BlogController extends Controller
         return response()->json(Blog::latest()->get());
     }
 
+    public function showById($id){
+        $blog = Blog::findOrFail($id);
+        return response()->json($blog);
+    }
+
+
     // GET single blog by slug
     public function show($slug)
     {
