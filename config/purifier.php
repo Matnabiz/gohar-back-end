@@ -30,6 +30,19 @@ return [
             'AutoFormat.AutoParagraph' => true,
             'AutoFormat.RemoveEmpty'   => true,
         ],
+        'full_html' => [
+            'HTML.Doctype'             => 'HTML 4.01 Transitional',
+            // allow headers, spans with style, images, tables, code blocks, etc
+            'HTML.Allowed'            => 'h1,h2,h3,h4,h5,h6,p,br,strong,b,em,i,u,ul,ol,li,blockquote,pre,code,span[style],a[href|title|target],img[src|alt|width|height],table,thead,tbody,tr,th,td',
+            // allow basic CSS properties that are commonly applied by rich text editors
+            'CSS.AllowedProperties'   => 'color,background-color,font-weight,font-style,text-decoration,text-align,font-size',
+            'AutoFormat.AutoParagraph'=> true,
+            'AutoFormat.RemoveEmpty'  => true,
+            // don't strip style attributes from spans
+            'Attr.AllowedFrameTargets' => ['_blank', '_self'],
+            // allow relative/absolute urls
+            'URI.AllowedSchemes' => ['http', 'https', 'mailto'],
+        ],
         'test'    => [
             'Attr.EnableID' => 'true',
         ],
@@ -49,15 +62,15 @@ return [
                 ['aside',   'Block', 'Flow', 'Common'],
                 ['header',  'Block', 'Flow', 'Common'],
                 ['footer',  'Block', 'Flow', 'Common'],
-				
+
 				// Content model actually excludes several tags, not modelled here
                 ['address', 'Block', 'Flow', 'Common'],
                 ['hgroup', 'Block', 'Required: h1 | h2 | h3 | h4 | h5 | h6', 'Common'],
-				
+
 				// http://developers.whatwg.org/grouping-content.html
                 ['figure', 'Block', 'Optional: (figcaption, Flow) | (Flow, figcaption) | Flow', 'Common'],
                 ['figcaption', 'Inline', 'Flow', 'Common'],
-				
+
 				// http://developers.whatwg.org/the-video-element.html#the-video-element
                 ['video', 'Block', 'Optional: (source, Flow) | (Flow, source) | Flow', 'Common', [
                     'src' => 'URI',
@@ -80,7 +93,7 @@ return [
                 ['sup',  'Inline', 'Inline', 'Common'],
                 ['mark', 'Inline', 'Inline', 'Common'],
                 ['wbr',  'Inline', 'Empty', 'Core'],
-				
+
 				// http://developers.whatwg.org/edits.html
                 ['ins', 'Block', 'Flow', 'Common', ['cite' => 'URI', 'datetime' => 'CDATA']],
                 ['del', 'Block', 'Flow', 'Common', ['cite' => 'URI', 'datetime' => 'CDATA']],
