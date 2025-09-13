@@ -39,7 +39,7 @@ class BlogController extends Controller
         ]);
 
         // Sanitize content
-        $cleanContent = Purifier::clean($validatedData['content']);
+        $cleanContent = Purifier::clean($validatedData['content'], 'full_html');
 
         // Handle file upload
         $file = $request->file('image');
