@@ -95,8 +95,7 @@ class ProductController extends Controller
      * @param \App\Models\Category $category
      * @return array
      */
-    private function getDescendantIds($category)
-    {
+    private function getDescendantIds($category){
         $ids = [$category->id];
 
         $children = $category->children()->get();
@@ -122,6 +121,38 @@ class ProductController extends Controller
             return asset('storage/' . ltrim($img->path, '/'));
         })->values()->toArray();
 
+        // Build category info with ancestors (root -> ... -> current)
+        $categoryData = null;
+        if ($product->category) {
+            $cat = $product->category;
+
+            // collect ancestors from current up to root, then reverse to get root-first
+            $tmp = [];
+            $cur = $cat;
+            while ($cur) {
+                $tmp[] = [
+                    'id' => $cur->id,
+                    'name' => $cur->name,
+                    'slug' => $cur->slug,
+                ];
+                $cur = $cur->parent; // requires parent relation on Category
+            }
+            $ancestors = array_reverse($tmp);
+
+            // build category path (joined slugs) e.g. "carpet/pictorial-carpet"
+            $path_segments = array_map(fn($a) => $a['slug'], $ancestors);
+            $category_path = implode('/', $path_segments);
+
+            $categoryData = [
+                'id' => $cat->id,
+                'name' => $cat->name,
+                'slug' => $cat->slug,
+                'breadcrumb' => $cat->breadcrumb,
+                'ancestors' => $ancestors,
+                'category_path' => $category_path,
+            ];
+        }
+
         return [
             'id' => $product->id,
             'title' => $product->title,
@@ -133,11 +164,7 @@ class ProductController extends Controller
             'color' => $product->color,
             'active' => $product->active,
             'stock' => $product->stock,
-            'category' => $product->category ? [
-                'id' => $product->category->id,
-                'name' => $product->category->name,
-                'breadcrumb' => $product->category->breadcrumb,
-            ] : null,
+            'category' => $categoryData,
         ];
     }
 
