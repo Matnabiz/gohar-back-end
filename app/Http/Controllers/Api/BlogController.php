@@ -79,7 +79,7 @@ class BlogController extends Controller
 
         // sanitize content
         if (isset($validatedData['content'])) {
-            $validatedData['content'] = Purifier::clean($validatedData['content']);
+            $validatedData['content'] = Purifier::clean($validatedData['content'], 'full_html');
         }
 
         // handle new cover image
