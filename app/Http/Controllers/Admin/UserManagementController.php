@@ -17,7 +17,7 @@ class UserManagementController extends Controller
             'name'     => 'required|string|max:255',
             'email'    => 'required|email|unique:users',
             'password' => 'required|min:6',
-            'role'     => 'required|string', // e.g. 'admin' or 'user'
+            'is_admin' => 'required|boolean',
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
@@ -29,6 +29,7 @@ class UserManagementController extends Controller
             'data'    => $user
         ], 201);
     }
+
     public function update(Request $request, User $user){
         $validated = $request->validate([
             'name' => 'string',
