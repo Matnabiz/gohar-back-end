@@ -36,8 +36,7 @@ class UserController extends Controller
         return $request->user()->orders()->latest()->get();
     }
 
-    public function wishlist(Request $request)
-    {
+    public function wishlist(Request $request){
         return $request->user()->wishlist()->with('product')->get()->map(fn($w) => [
             'id' => $w->id,
             'title' => $w->product->title,

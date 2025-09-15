@@ -99,7 +99,11 @@ Route::get('/blogs/id/{id}', [BlogController::class, 'showById']);
 // Image upload route
 Route::post('/blogs/upload-image', [BlogController::class, 'uploadImage']);
 
-
+// User Management Route
+Route::get('/users', [UserManagementController::class, 'index']);   // list users
+Route::post('/users', [UserManagementController::class, 'store']);  // create user
+Route::put('/users/{user}', [UserManagementController::class, 'update']); // update user
+Route::delete('/users/{user}', [UserManagementController::class, 'destroy']); // delete user
 
 
 // Orders
