@@ -53,9 +53,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/wishlist/{productId}', [WishlistController::class, 'destroy']);
 
 
-    Route::get('/comments', [CommentController::class, 'index']); // pass query params
     Route::post('/comments', [CommentController::class, 'store']);
 });
+Route::get('/comments', [CommentController::class, 'index']);
 
 
 Route::middleware('auth:sanctum')->group(function () {
