@@ -55,14 +55,19 @@ class ProductController extends Controller
         return response()->json($products);
     }
 
+    // inside ProductController
+
     public function byCategory($path = null){
-        // If no path is provided, return all products.
         if (!$path) {
             $products = Product::all();
             $products->transform(function ($product) {
                 return $this->formatProduct($product);
             });
-            return response()->json($products);
+
+            return response()->json([
+                'category' => null,
+                'products' => $products,
+            ]);
         }
 
         $segments = explode('/', $path);
@@ -95,13 +100,43 @@ class ProductController extends Controller
             $products->transform(function ($product) {
                 return $this->formatProduct($product);
             });
-            return response()->json($products);
+
+            // Build category metadata for the frontend
+            // put ancestors from root -> leaf, using parent relation
+            $tmp = [];
+            $cur = $category;
+            while ($cur) {
+                $tmp[] = [
+                    'id' => $cur->id,
+                    'name' => $cur->name,
+                    'slug' => $cur->slug,
+                ];
+                $cur = $cur->parent;
+            }
+            $ancestors = array_reverse($tmp);
+            $path_segments = array_map(fn($a) => $a['slug'], $ancestors);
+            $category_path = implode('/', $path_segments);
+
+            $categoryData = [
+                'id' => $category->id,
+                'name' => $category->name,
+                'slug' => $category->slug,
+                'breadcrumb' => $category->breadcrumb,
+                'ancestors' => $ancestors,
+                'category_path' => $category_path,
+            ];
+
+            return response()->json([
+                'category' => $categoryData,
+                'products' => $products,
+            ]);
         }
 
         return response()->json([
             'message' => 'Category not found'
         ], 404);
     }
+
 
     /**
      * A helper function to get the ID of a category and all its children.
