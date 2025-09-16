@@ -1,0 +1,45 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use Illuminate\Http\Request;
+use App\Models\Comment;
+
+class CommentController extends Controller
+{
+    // List comments for any resource
+    public function index(Request $request)
+    {
+        $request->validate([
+            'commentable_type' => 'required|string',
+            'commentable_id' => 'required|integer',
+        ]);
+
+        $comments = Comment::where('commentable_type', $request->commentable_type)
+            ->where('commentable_id', $request->commentable_id)
+            ->with('user')
+            ->latest()
+            ->get();
+
+        return response()->json($comments);
+    }
+
+    // Add new comment
+    public function store(Request $request)
+    {
+        $request->validate([
+            'commentable_type' => 'required|string',
+            'commentable_id' => 'required|integer',
+            'content' => 'required|string|max:1000',
+        ]);
+
+        $comment = Comment::create([
+            'user_id' => auth()->id(),
+            'commentable_type' => $request->commentable_type,
+            'commentable_id' => $request->commentable_id,
+            'content' => $request->content,
+        ]);
+
+        return response()->json($comment->load('user'));
+    }
+}

@@ -26,6 +26,9 @@ class Product extends Model
     public function images(){
         return $this->hasMany(ProductImage::class);
     }
+    public function comments(){
+        return $this->morphMany(Comment::class, 'commentable')->latest();
+    }
     public function category() {
         return $this->belongsTo(Category::class);
     }
@@ -33,8 +36,7 @@ class Product extends Model
         return $this->belongsToMany(User::class, 'wishlists')->withTimestamps();
     }
 
-    protected static function booted()
-    {
+    protected static function booted(){
         static::created(function ($product) {
             $product->external_code = str_pad($product->id, 4, '0', STR_PAD_LEFT);
             $product->saveQuietly();

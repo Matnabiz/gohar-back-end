@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BlogController;
 use App\Http\Controllers\Api\CartController;
+use App\Http\Controllers\Api\CommentController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\SearchController;
@@ -51,6 +52,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/wishlist/{productId}', [WishlistController::class, 'store']);
     Route::delete('/wishlist/{productId}', [WishlistController::class, 'destroy']);
 
+
+    Route::get('/comments', [CommentController::class, 'index']); // pass query params
+    Route::post('/comments', [CommentController::class, 'store']);
 });
 
 
