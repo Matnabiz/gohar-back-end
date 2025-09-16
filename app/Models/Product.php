@@ -4,6 +4,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\AsArrayObject;
+use Illuminate\Support\Str;
 
 class Product extends Model
 {
@@ -37,7 +38,26 @@ class Product extends Model
             $product->external_code = str_pad($product->id, 4, '0', STR_PAD_LEFT);
             $product->saveQuietly();
         });
+
+        static::saving(function ($product) {
+            if (empty($product->slug)) {
+                $baseSlug = Str::slug($product->title, '-');
+                $slug = $baseSlug;
+                $count = 1;
+
+                // Ensure uniqueness
+                while (Product::where('slug', $slug)
+                    ->where('id', '!=', $product->id)
+                    ->exists()) {
+                    $slug = $baseSlug . '-' . $count;
+                    $count++;
+                }
+
+                $product->slug = $slug;
+            }
+        });
     }
+
 
 }
 
