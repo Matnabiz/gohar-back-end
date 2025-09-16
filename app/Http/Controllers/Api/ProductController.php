@@ -23,6 +23,21 @@ class ProductController extends Controller
         return $products;
     }
 
+    public function related($productId){
+        $product = Product::findOrFail($productId);
+
+        $related = Product::with('images','category.parent')
+            ->where('category_id', $product->category_id)
+            ->where('id', '!=', $product->id)
+            ->where('active', true)
+            ->limit(6)
+            ->get()
+            ->map(fn($p) => $this->formatProduct($p));
+
+        return response()->json($related);
+    }
+
+
     /**
      * Display the specified product.
      */
