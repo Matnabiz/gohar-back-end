@@ -5,13 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Comment;
-use App\Models\Product;
+use App\Models\Product; // make sure to import Product
 
 class CommentController extends Controller
 {
-    /**
-     * List comments for a given resource and include product rating if applicable.
-     */
+    // List comments for any resource
     public function index(Request $request)
     {
         $request->validate([
@@ -25,28 +23,24 @@ class CommentController extends Controller
             ->latest()
             ->get();
 
-        $response = [
-            'comments' => $comments,
-        ];
+        $product_rating = null;
 
-        // Include product rating if resource is Product
-        if ($request->commentable_type === Product::class) {
+        // Only compute rating if the resource is a Product
+        if ($request->commentable_type === 'App\Models\Product') {
             $product = Product::find($request->commentable_id);
             if ($product) {
-                $response['product'] = [
-                    'id' => $product->id,
-                    'rating_avg' => $product->rating_avg,    // e.g., 4.5
-                    'rating_count' => $product->rating_count, // e.g., 12
-                ];
+                // average rating (nullable if no ratings)
+                $product_rating = $product->comments()->avg('rating');
             }
         }
 
-        return response()->json($response);
+        return response()->json([
+            'comments' => $comments,
+            'product_rating' => $product_rating ?? "-",
+        ]);
     }
 
-    /**
-     * Store a new comment and let the observer handle rating recalculation.
-     */
+    // Add new comment
     public function store(Request $request)
     {
         $request->validate([
@@ -64,10 +58,6 @@ class CommentController extends Controller
             'rating' => $request->rating,
         ]);
 
-        // The observer automatically recalculates Product rating if applicable
-
-        return response()->json([
-            'comment' => $comment->load('user'),
-        ]);
+        return response()->json($comment->load('user'));
     }
 }
