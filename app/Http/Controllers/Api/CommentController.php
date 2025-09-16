@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Comment;
-use App\Models\Product; // make sure to import Product
 
 class CommentController extends Controller
 {
@@ -17,27 +16,15 @@ class CommentController extends Controller
             'commentable_id' => 'required|integer',
         ]);
 
+        // Get comments for the resource, including the user
         $comments = Comment::where('commentable_type', $request->commentable_type)
             ->where('commentable_id', $request->commentable_id)
             ->with('user')
             ->latest()
             ->get();
 
-        $product_rating = null;
-
-        // Only compute rating if the resource is a Product
-        if ($request->commentable_type === 'App\Models\Product') {
-            $product = Product::find($request->commentable_id);
-            if ($product) {
-                // average rating (nullable if no ratings)
-                $product_rating = $product->comments()->avg('rating');
-            }
-        }
-
-        return response()->json([
-            'comments' => $comments,
-            'product_rating' => $product_rating ?? "-",
-        ]);
+        // Return only the comments array
+        return response()->json($comments);
     }
 
     // Add new comment
@@ -58,6 +45,7 @@ class CommentController extends Controller
             'rating' => $request->rating,
         ]);
 
+        // Load user relationship
         return response()->json($comment->load('user'));
     }
 }
