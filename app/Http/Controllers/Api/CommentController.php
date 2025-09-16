@@ -26,12 +26,12 @@ class CommentController extends Controller
     }
 
     // Add new comment
-    public function store(Request $request)
-    {
+    public function store(Request $request){
         $request->validate([
             'commentable_type' => 'required|string',
             'commentable_id' => 'required|integer',
             'content' => 'required|string|max:1000',
+            'rating' => 'nullable|integer|min:1|max:5',
         ]);
 
         $comment = Comment::create([
@@ -39,8 +39,10 @@ class CommentController extends Controller
             'commentable_type' => $request->commentable_type,
             'commentable_id' => $request->commentable_id,
             'content' => $request->content,
+            'rating' => $request->rating,
         ]);
 
         return response()->json($comment->load('user'));
     }
+
 }
