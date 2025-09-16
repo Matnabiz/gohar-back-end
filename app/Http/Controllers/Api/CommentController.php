@@ -38,7 +38,7 @@ class CommentController extends Controller
             'user_id' => auth()->id(),
             'commentable_type' => $request->commentable_type,
             'commentable_id' => $request->commentable_id,
-            'content' => $request->content,
+            'content' => $request->input('content'),
             'rating' => $request->rating,
         ]);
 
