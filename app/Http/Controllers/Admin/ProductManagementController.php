@@ -14,8 +14,7 @@ class ProductManagementController extends Controller
     /**
      * Return all products (admin listing). Each product includes an "images" array of full URLs.
      */
-    public function index()
-    {
+    public function index(){
         $products = Product::with('images','category')->orderBy('created_at', 'desc')->get();
 
         $payload = $products->map(function ($p) {
@@ -204,8 +203,7 @@ class ProductManagementController extends Controller
     /**
      * Delete product and all associated images from storage & DB.
      */
-    public function destroy($id)
-    {
+    public function destroy($id){
         $product = Product::with('images')->find($id);
 
         if (! $product) {
@@ -239,8 +237,7 @@ class ProductManagementController extends Controller
     /**
      * Helper: format product for admin responses (include images as full URLs).
      */
-    private function formatProductForAdmin(Product $product)
-    {
+    private function formatProductForAdmin(Product $product){
         $product->loadMissing('images','category');
 
         $images = $product->images->map(function ($img) {
@@ -250,6 +247,7 @@ class ProductManagementController extends Controller
         return [
             'id' => $product->id,
             'title' => $product->title,
+            'slug' => $product->slug,
             'price' => $product->price,
             'description' => $product->description,
             'category_id' => $product->category_id,

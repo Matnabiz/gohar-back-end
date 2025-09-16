@@ -170,6 +170,7 @@ class ProductController extends Controller
         return [
             'id' => $product->id,
             'title' => $product->title,
+            'slug' => $product->slug,
             'price' => $product->price,
             'description' => $product->description,
             'main_image' => $product->main_image ? asset('storage/' . ltrim($product->main_image, '/')) : null,
