@@ -72,6 +72,7 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::get('products', [ProductController::class, 'index']);
 Route::get('/products/all-products', [ProductController::class, 'allProducts']);
 Route::get('products/{product}', [ProductController::class, 'show']);
+Route::get('/products/by-slug/{slug}', [ProductController::class, 'showBySlug']);
 Route::get('/products/categories/{path?}', [ProductController::class, 'byCategory'])
     ->where('path', '.*');
 

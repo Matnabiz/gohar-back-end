@@ -31,6 +31,16 @@ class ProductController extends Controller
         return response()->json($this->formatProduct($product));
     }
 
+    public function showBySlug($slug){
+        $product = Product::where('slug', $slug)->with('images', 'category.ancestors')->first();
+
+        if (!$product) {
+            return response()->json(['message' => 'Product not found'], 404);
+        }
+        return response()->json($this->formatProduct($product));
+    }
+
+
     /**
      * Display products by category slug.
      */

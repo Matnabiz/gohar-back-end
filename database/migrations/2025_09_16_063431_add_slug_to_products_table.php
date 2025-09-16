@@ -1,5 +1,4 @@
 <?php
-
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -13,11 +12,20 @@ return new class extends Migration {
             $table->string('slug')->nullable()->after('title');
         });
 
-        // Backfill slugs from unique titles
+        // Backfill slugs with uniqueness check
         Product::chunk(100, function ($products) {
             foreach ($products as $product) {
                 if (empty($product->slug)) {
-                    $product->slug = Str::slug($product->title, '-');
+                    $baseSlug = Str::slug($product->title, '-');
+                    $slug = $baseSlug;
+                    $counter = 1;
+
+                    // ensure uniqueness
+                    while (Product::where('slug', $slug)->exists()) {
+                        $slug = $baseSlug . '-' . $counter++;
+                    }
+
+                    $product->slug = $slug;
                     $product->saveQuietly();
                 }
             }
@@ -36,4 +44,3 @@ return new class extends Migration {
         });
     }
 };
-
