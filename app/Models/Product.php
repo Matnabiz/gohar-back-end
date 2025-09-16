@@ -23,6 +23,22 @@ class Product extends Model
         'material',
         'color'
     ];
+    // App\Models\Product.php
+    public function updateRatingStats(): void
+    {
+        // compute aggregated stats only from comments that have a rating
+        $stats = $this->comments()
+            ->whereNotNull('rating')
+            ->selectRaw('AVG(rating) as avg, COUNT(*) as cnt')
+            ->first();
+
+        // Note: $stats->avg may be null if no rated comments exist
+        $this->rating_avg = $stats->avg !== null ? round((float)$stats->avg, 2) : null;
+        $this->rating_count = (int) ($stats->cnt ?? 0);
+
+        // save silently
+        $this->save();
+    }
     public function images(){
         return $this->hasMany(ProductImage::class);
     }
