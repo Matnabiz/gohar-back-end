@@ -7,6 +7,7 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class ProductManagementController extends Controller
 {
@@ -27,10 +28,10 @@ class ProductManagementController extends Controller
     /**
      * Create a product and optionally store multiple images.
      */
-    public function store(Request $request)
-    {
+    public function store(Request $request){
         $validated = $request->validate([
             'title'        => 'required|string|max:255',
+            'slug'         => 'nullable|string|max:255|unique:products,slug',
             'price'        => 'nullable|numeric|min:0',
             'description'  => 'nullable|string',
             'category_id'  => 'nullable|exists:categories,id',
@@ -43,7 +44,9 @@ class ProductManagementController extends Controller
             'dimensions'   => 'nullable|string|max:255',
             'material'     => 'nullable|string|max:255',
         ]);
-
+        if (empty($validated['slug'])) {
+            $validated['slug'] = Str::slug($validated['title'], '-');
+        }
         DB::beginTransaction();
         try {
             // Handle main image upload
@@ -85,8 +88,7 @@ class ProductManagementController extends Controller
      * - uploading a new main_image file (main_image)
      * - selecting main image by metadata main_image_choice_type & main_image_choice_index
      */
-    public function update(Request $request, $id)
-    {
+    public function update(Request $request, $id){
         $product = Product::with('images')->find($id);
 
         if (! $product) {
@@ -95,6 +97,7 @@ class ProductManagementController extends Controller
 
         $validated = $request->validate([
             'title'        => 'sometimes|required|string|max:255',
+            'slug'         => 'nullable|string|max:255|unique:products,slug,' . $product->id,
             'price'        => 'sometimes|nullable|numeric|min:0',
             'description'  => 'nullable|string',
             'category_id'  => 'nullable|exists:categories,id',
@@ -111,7 +114,11 @@ class ProductManagementController extends Controller
             'dimensions'   => 'nullable|string|max:255',
             'material'     => 'nullable|string|max:255',
         ]);
-
+        if (!empty($validated['slug'])) {
+            $product->slug = $validated['slug'];
+        } elseif (isset($validated['title'])) {
+            $product->slug = Str::slug($validated['title'], '-');
+        }
         DB::beginTransaction();
         try {
             // Update basic fields
