@@ -19,6 +19,7 @@ class CommentController extends Controller
         // Get comments for the resource, including the user
         $comments = Comment::where('commentable_type', $request->commentable_type)
             ->where('commentable_id', $request->commentable_id)
+            ->where('state', 'shown')
             ->with('user')
             ->latest()
             ->get();
