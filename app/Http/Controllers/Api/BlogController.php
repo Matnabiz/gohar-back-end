@@ -99,7 +99,7 @@ class BlogController extends Controller
             'content' => $cleanContent,
             'slug'    => $slug,
             'image'   => $imageUrl,
-            'category_id' => 'nullable|integer|exists:categories,id',
+            'category_id' => $request->category_id,
         ]);
 
         return response()->json($blog, 201);
