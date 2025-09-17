@@ -28,8 +28,7 @@ class CommentController extends Controller
     }
 
     // Add new comment
-    public function store(Request $request)
-    {
+    public function store(Request $request){
         $request->validate([
             'commentable_type' => 'required|string',
             'commentable_id' => 'required|integer',
@@ -43,6 +42,7 @@ class CommentController extends Controller
             'commentable_id' => $request->commentable_id,
             'content' => $request->input('content'),
             'rating' => $request->rating,
+            'state' => 'hidden'
         ]);
 
         // Load user relationship
