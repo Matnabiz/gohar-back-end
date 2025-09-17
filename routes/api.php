@@ -3,7 +3,7 @@
 use App\Http\Controllers\Admin\CategoryManagementController;
 use App\Http\Controllers\Admin\ProductManagementController;
 use App\Http\Controllers\Admin\UserManagementController;
-use App\Http\Controllers\Api\Admin\CommentManagementController;
+use App\Http\Controllers\Admin\CommentManagementController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BlogController;
 use App\Http\Controllers\Api\CartController;
