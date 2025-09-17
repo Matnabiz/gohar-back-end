@@ -22,7 +22,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        \Log::info('AppServiceProvider booted!'); // <--- TEMP TEST
         Comment::observe(CommentObserver::class);
     }
 }
