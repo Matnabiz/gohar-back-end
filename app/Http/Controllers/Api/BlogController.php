@@ -21,7 +21,6 @@ class BlogController extends Controller
         return response()->json($blog);
     }
 
-
     // GET single blog by slug
     public function show($slug)
     {
@@ -63,8 +62,6 @@ class BlogController extends Controller
 
         return response()->json($blog, 201);
     }
-
-
 
     // PUT update blog
     public function update(Request $request, $id){
