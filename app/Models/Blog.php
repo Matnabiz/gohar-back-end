@@ -7,7 +7,11 @@ use Illuminate\Support\Str;
 
 class Blog extends Model
 {
-    protected $fillable = ['title', 'content', 'slug', 'image'];
+    protected $fillable = ['title', 'content', 'slug', 'image', 'category_id'];
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
     public function comments(){
         return $this->morphMany(Comment::class, 'commentable')->latest();
     }

@@ -22,10 +22,50 @@ class BlogController extends Controller
     }
 
     // GET single blog by slug
-    public function show($slug)
-    {
-        $blog = Blog::where('slug', $slug)->firstOrFail();
-        return response()->json($blog);
+    public function show($slug){
+        $blog = Blog::with('category')->where('slug', $slug)->firstOrFail();
+
+        // related blogs (same category)
+        $relatedBlogs = [];
+        if ($blog->category_id) {
+            $relatedBlogs = Blog::where('category_id', $blog->category_id)
+                ->where('id', '!=', $blog->id)
+                ->where('published', true) // if you have such flag
+                ->limit(6)
+                ->get(['id','title','slug','image','created_at']);
+        }
+
+        // related products (same category id)
+        $relatedProducts = [];
+        if ($blog->category_id) {
+            $relatedProducts = Product::where('category_id', $blog->category_id)
+                ->where('active', true)
+                ->whereNotNull('main_image')
+                ->limit(6)
+                ->get()
+                ->map(function ($p) {
+                    return [
+                        'id' => $p->id,
+                        'title' => $p->title,
+                        'slug' => $p->slug ?? null,
+                        'price' => $p->price,
+                        'main_image' => $p->main_image ? asset('storage/' . ltrim($p->main_image, '/')) : null,
+                        'rating_avg' => $p->rating_avg ?? null,
+                    ];
+                });
+        }
+
+        // return blog with category & related arrays
+        return response()->json([
+            'id' => $blog->id,
+            'title' => $blog->title,
+            'content' => $blog->content,
+            'image' => $blog->image,
+            'created_at' => $blog->created_at,
+            'category' => $blog->category ? ['id' => $blog->category->id, 'name' => $blog->category->name] : null,
+            'related_blogs' => $relatedBlogs,
+            'related_products' => $relatedProducts,
+        ]);
     }
 
     // POST create a blog
@@ -35,6 +75,7 @@ class BlogController extends Controller
             'title'   => 'required|string|max:255',
             'content' => 'required|string',
             'image'   => 'required|image|mimes:jpg,jpeg,png,gif,webp|max:5120', // file required
+            'category_id' => 'nullable|integer|exists:categories,id',
         ]);
 
         // Sanitize content
@@ -58,6 +99,7 @@ class BlogController extends Controller
             'content' => $cleanContent,
             'slug'    => $slug,
             'image'   => $imageUrl,
+            'category_id' => 'nullable|integer|exists:categories,id',
         ]);
 
         return response()->json($blog, 201);
@@ -72,6 +114,7 @@ class BlogController extends Controller
             'content'     => 'sometimes|string',
             'cover_image' => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:5120',
             'slug'        => 'sometimes|string|max:255|unique:blogs,slug,' . $id, // optional direct slug change
+            'category_id' => 'nullable|integer|exists:categories,id',
         ]);
 
         // Sanitize content
