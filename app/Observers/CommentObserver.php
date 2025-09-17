@@ -37,7 +37,7 @@ class CommentObserver
     protected function updateProductRating(Comment $comment): void
     {
         // Only update if the comment is for a Product
-        if ($comment->commentable_type !== Product::class) {
+        if (! str_contains($comment->commentable_type, 'Product')) {
             return;
         }
 
