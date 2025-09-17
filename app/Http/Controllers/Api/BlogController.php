@@ -30,7 +30,6 @@ class BlogController extends Controller
         if ($blog->category_id) {
             $relatedBlogs = Blog::where('category_id', $blog->category_id)
                 ->where('id', '!=', $blog->id)
-                ->where('published', true) // if you have such flag
                 ->limit(6)
                 ->get(['id','title','slug','image','created_at']);
         }
