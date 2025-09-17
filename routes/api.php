@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\CategoryManagementController;
 use App\Http\Controllers\Admin\ProductManagementController;
 use App\Http\Controllers\Admin\UserManagementController;
+use App\Http\Controllers\Api\Admin\CommentManagementController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BlogController;
 use App\Http\Controllers\Api\CartController;
@@ -92,7 +93,9 @@ Route::post('admin/categories', [CategoryManagementController::class, 'store']);
 Route::put('admin/categories/{id}', [CategoryManagementController::class, 'update']);
 Route::delete('admin/categories/{id}', [CategoryManagementController::class, 'destroy']);
 Route::post('/admin/categories/order', [CategoryManagementController::class, 'updateOrder']);
-
+Route::get('admin/comments', [CommentManagementController::class, 'index']);
+Route::patch('admin/comments/{id}/state', [CommentManagementController::class, 'updateState']);
+Route::delete('admin/comments/{id}', [CommentManagementController::class, 'destroy']);
 
 
 Route::get('/blogs', [BlogController::class, 'index']);          // List all blogs
