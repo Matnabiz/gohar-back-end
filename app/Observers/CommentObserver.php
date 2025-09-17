@@ -7,49 +7,36 @@ use App\Models\Product;
 
 class CommentObserver
 {
-    /**
-     * Handle events after a comment is created or updated.
-     * 'saved' covers both create and update.
-     */
-    public function saved(Comment $comment): void
+    public function created(Comment $comment)
     {
-        $this->maybeRecalcProduct($comment);
+        $this->updateProductRating($comment);
     }
 
-    /**
-     * Handle deleted (permanent) comments.
-     */
-    public function deleted(Comment $comment): void
+    public function updated(Comment $comment)
     {
-        $this->maybeRecalcProduct($comment);
+        $this->updateProductRating($comment);
     }
 
-    /**
-     * If your Comment model uses soft deletes, handle restore as well.
-     */
-    public function restored(Comment $comment): void
+    public function deleted(Comment $comment)
     {
-        $this->maybeRecalcProduct($comment);
+        $this->updateProductRating($comment);
     }
 
-    /**
-     * Centralized logic: only recalc if the comment belongs to a Product.
-     */
-    protected function maybeRecalcProduct(Comment $comment): void
+    protected function updateProductRating(Comment $comment)
     {
-        // If your commentable_type stores class names (default morphTo), compare to Product::class
-        if ($comment->commentable_type !== Product::class) {
-            return;
+        if ($comment->commentable_type === Product::class) {
+            $product = Product::find($comment->commentable_id);
+
+            if ($product) {
+                $stats = $product->comments()
+                    ->whereNotNull('rating')
+                    ->selectRaw('COUNT(*) as count, AVG(rating) as avg')
+                    ->first();
+
+                $product->rating_count = $stats->count ?? 0;
+                $product->rating_avg   = $stats->avg ?? 0;
+                $product->save();
+            }
         }
-
-        // find product by id (safer than $comment->commentable in case relation is not loaded)
-        $product = Product::find($comment->commentable_id);
-
-        if (! $product) {
-            return;
-        }
-
-        // Recalculate stats (fast)
-        $product->updateRatingStats();
     }
 }
