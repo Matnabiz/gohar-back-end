@@ -41,9 +41,9 @@ class BlogController extends Controller
         if ($blog->category_id) {
             $category = $blog->category;
 
-            // get current + child category IDs
+            // get all descendant IDs (including current)
             $categoryIds = [$category->id];
-            $categoryIds = array_merge($categoryIds, $category->allChildrenIds());
+            $categoryIds = array_merge($categoryIds, $this->getDescendantIds($category));
 
             $relatedProducts = Product::whereIn('category_id', $categoryIds)
                 ->where('active', true)
@@ -68,10 +68,29 @@ class BlogController extends Controller
             'content' => $blog->content,
             'image' => $blog->image,
             'created_at' => $blog->created_at,
-            'category' => $blog->category ? ['id' => $blog->category->id, 'name' => $blog->category->name] : null,
+            'category' => $blog->category ? [
+                'id' => $blog->category->id,
+                'name' => $blog->category->name
+            ] : null,
             'related_blogs' => $relatedBlogs,
             'related_products' => $relatedProducts,
         ]);
+    }
+
+    /**
+     * Recursively get all child category IDs.
+     * Can be copied from ProductController.
+     */
+    private function getDescendantIds($category){
+        $ids = [];
+        $children = $category->children()->get();
+
+        foreach ($children as $child) {
+            $ids[] = $child->id;
+            $ids = array_merge($ids, $this->getDescendantIds($child));
+        }
+
+        return $ids;
     }
 
 
