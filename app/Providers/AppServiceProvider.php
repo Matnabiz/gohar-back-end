@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Log;
 use App\Models\Comment;
 use App\Observers\CommentObserver;
 use Illuminate\Support\ServiceProvider;
@@ -21,6 +22,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        \Log::info('AppServiceProvider booted!'); // <--- TEMP TEST
         Comment::observe(CommentObserver::class);
     }
 }
