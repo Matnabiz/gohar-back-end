@@ -21,7 +21,9 @@ class Product extends Model
         'main_image',
         'dimensions',
         'material',
-        'color'
+        'color',
+        'rating_avg',
+        'rating_count'
     ];
     // App\Models\Product.php
     public function updateRatingStats(): void

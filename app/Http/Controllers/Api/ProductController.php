@@ -230,6 +230,8 @@ class ProductController extends Controller
             'active' => $product->active,
             'stock' => $product->stock,
             'category' => $categoryData,
+            'rating_avg' => $product->rating_avg,
+            'rating_count' => $product->rating_count,
         ];
     }
 
