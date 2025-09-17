@@ -23,7 +23,8 @@ class BlogController extends Controller
     }
 
     // GET single blog by slug
-    public function show($slug){
+    public function show($slug)
+    {
         $blog = Blog::with('category')->where('slug', $slug)->firstOrFail();
 
         // related blogs (same category)
@@ -35,10 +36,16 @@ class BlogController extends Controller
                 ->get(['id','title','slug','image','created_at']);
         }
 
-        // related products (same category id)
+        // related products (same category or children categories)
         $relatedProducts = [];
         if ($blog->category_id) {
-            $relatedProducts = Product::where('category_id', $blog->category_id)
+            $category = $blog->category;
+
+            // get current + child category IDs
+            $categoryIds = [$category->id];
+            $categoryIds = array_merge($categoryIds, $category->allChildrenIds());
+
+            $relatedProducts = Product::whereIn('category_id', $categoryIds)
                 ->where('active', true)
                 ->whereNotNull('main_image')
                 ->limit(6)
@@ -55,7 +62,6 @@ class BlogController extends Controller
                 });
         }
 
-        // return blog with category & related arrays
         return response()->json([
             'id' => $blog->id,
             'title' => $blog->title,
@@ -67,6 +73,7 @@ class BlogController extends Controller
             'related_products' => $relatedProducts,
         ]);
     }
+
 
     // POST create a blog
     public function store(Request $request)
