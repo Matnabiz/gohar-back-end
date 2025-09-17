@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Models\Product;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
 use App\Models\Blog;
