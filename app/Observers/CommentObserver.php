@@ -24,7 +24,7 @@ class CommentObserver
 
     protected function updateProductRating(Comment $comment)
     {
-        if ($comment->commentable_type === Product::class) {
+        if (class_basename($comment->commentable_type) === 'Product') {
             $product = Product::find($comment->commentable_id);
 
             if ($product) {
@@ -39,4 +39,5 @@ class CommentObserver
             }
         }
     }
+
 }
