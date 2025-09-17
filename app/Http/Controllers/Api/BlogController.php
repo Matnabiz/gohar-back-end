@@ -67,31 +67,36 @@ class BlogController extends Controller
 
 
     // PUT update blog
-    public function update(Request $request, $id)
-    {
+    public function update(Request $request, $id){
         $blog = Blog::findOrFail($id);
 
         $validatedData = $request->validate([
-            'title'   => 'sometimes|string|max:255',
-            'content' => 'sometimes|string',
+            'title'       => 'sometimes|string|max:255',
+            'content'     => 'sometimes|string',
             'cover_image' => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:5120',
+            'slug'        => 'sometimes|string|max:255|unique:blogs,slug,' . $id, // optional direct slug change
         ]);
 
-        // sanitize content
+        // Sanitize content
         if (isset($validatedData['content'])) {
             $validatedData['content'] = Purifier::clean($validatedData['content'], 'full_html');
         }
 
-        // handle new cover image
+        // Handle new cover image
         if ($request->hasFile('cover_image')) {
             $file = $request->file('cover_image');
             $path = $file->store('blogs', 'public');
             $validatedData['image'] = asset('storage/' . $path);
         }
 
-        // update slug if title changed
-        if (isset($validatedData['title'])) {
-            $slug = Str::slug($validatedData['title']);
+        // Update slug if title changed OR if slug provided manually
+        if (isset($validatedData['title']) || isset($validatedData['slug'])) {
+            if (!isset($validatedData['slug'])) {
+                $slug = Str::slug($validatedData['title']);
+            } else {
+                $slug = Str::slug($validatedData['slug']);
+            }
+
             $original = $slug;
             $i = 1;
             while (Blog::where('slug', $slug)->where('id', '!=', $blog->id)->exists()) {
@@ -101,9 +106,9 @@ class BlogController extends Controller
         }
 
         $blog->update($validatedData);
+
         return response()->json($blog);
     }
-
 
     // DELETE blog
     public function destroy($id)
