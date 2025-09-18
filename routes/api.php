@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\CommentManagementController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BlogController;
 use App\Http\Controllers\Api\CartController;
+use App\Http\Controllers\Api\CheckoutController;
 use App\Http\Controllers\Api\CommentController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ProductController;
@@ -122,6 +123,9 @@ Route::get('orders', [OrderController::class, 'index']);
 Route::get('orders/{id}', [OrderController::class, 'show']);
 Route::put('orders', [OrderController::class, 'update']);
 Route::delete('orders', [OrderController::class, 'destroy']);
+Route::get('/checkout', [CheckoutController::class, 'index']);
+Route::post('/checkout/address', [CheckoutController::class, 'saveAddress']);
+Route::post('/checkout/place-order', [CheckoutController::class, 'placeOrder']);
 
 Route::get('/search', [SearchController::class, 'search']);
 
