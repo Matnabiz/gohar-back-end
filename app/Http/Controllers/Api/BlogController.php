@@ -36,7 +36,7 @@ class BlogController extends Controller
                 ->get(['id','title','slug','image','created_at']);
         }
 
-        // related products (same category or children categories)
+        // related products (same category or children categories, or random if no category)
         $relatedProducts = [];
         if ($blog->category_id) {
             $category = $blog->category;
@@ -45,37 +45,37 @@ class BlogController extends Controller
             $categoryIds = [$category->id];
             $categoryIds = array_merge($categoryIds, $this->getDescendantIds($category));
 
-            $relatedProducts = Product::whereIn('category_id', $categoryIds)
+            $relatedProductsQuery = Product::whereIn('category_id', $categoryIds)
                 ->where('active', true)
+                ->whereNotNull('main_image');
+        } else {
+            // no category: pick 6 random active products
+            $relatedProductsQuery = Product::where('active', true)
                 ->whereNotNull('main_image')
-                ->limit(6)
-                ->get()
-                ->map(function ($p) {
-                    return [
-                        'id' => $p->id,
-                        'title' => $p->title,
-                        'slug' => $p->slug ?? null,
-                        'price' => $p->price,
-                        'main_image' => $p->main_image ? asset('storage/' . ltrim($p->main_image, '/')) : null,
-                        'rating_avg' => $p->rating_avg ?? null,
-                    ];
-                });
+                ->inRandomOrder();
         }
 
+        $relatedProducts = $relatedProductsQuery
+            ->limit(6)
+            ->get()
+            ->map(function ($p) {
+                return [
+                    'id' => $p->id,
+                    'title' => $p->title,
+                    'slug' => $p->slug ?? null,
+                    'price' => $p->price,
+                    'main_image' => $p->main_image ? asset('storage/' . ltrim($p->main_image, '/')) : null,
+                    'rating_avg' => $p->rating_avg ?? null,
+                ];
+            });
+
         return response()->json([
-            'id' => $blog->id,
-            'title' => $blog->title,
-            'content' => $blog->content,
-            'image' => $blog->image,
-            'created_at' => $blog->created_at,
-            'category' => $blog->category ? [
-                'id' => $blog->category->id,
-                'name' => $blog->category->name
-            ] : null,
-            'related_blogs' => $relatedBlogs,
-            'related_products' => $relatedProducts,
+            'blog' => $blog,
+            'relatedBlogs' => $relatedBlogs,
+            'relatedProducts' => $relatedProducts,
         ]);
     }
+
 
     /**
      * Recursively get all child category IDs.
