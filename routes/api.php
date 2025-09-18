@@ -50,6 +50,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('cart/update', [CartController::class, 'update']);
     Route::post('cart/remove', [CartController::class, 'remove']);
 
+    Route::get('/checkout', [CheckoutController::class, 'index']);
+    Route::post('/checkout/address', [CheckoutController::class, 'saveAddress']);
+    Route::post('/checkout/place-order', [CheckoutController::class, 'placeOrder']);
+
     Route::get('/wishlist', [WishlistController::class, 'index']);
     Route::post('/wishlist/{productId}', [WishlistController::class, 'store']);
     Route::delete('/wishlist/{productId}', [WishlistController::class, 'destroy']);
@@ -123,9 +127,6 @@ Route::get('orders', [OrderController::class, 'index']);
 Route::get('orders/{id}', [OrderController::class, 'show']);
 Route::put('orders', [OrderController::class, 'update']);
 Route::delete('orders', [OrderController::class, 'destroy']);
-Route::get('/checkout', [CheckoutController::class, 'index']);
-Route::post('/checkout/address', [CheckoutController::class, 'saveAddress']);
-Route::post('/checkout/place-order', [CheckoutController::class, 'placeOrder']);
 
 Route::get('/search', [SearchController::class, 'search']);
 
