@@ -61,6 +61,24 @@ class BlogController extends Controller
                     ];
                 });
         }
+        else{
+            $relatedProductsQuery = Product::where('active', true)
+                ->whereNotNull('main_image')
+                ->inRandomOrder();
+            $relatedProducts = $relatedProductsQuery
+                ->limit(6)
+                ->get()
+                ->map(function ($p) {
+                    return [
+                        'id' => $p->id,
+                        'title' => $p->title,
+                        'slug' => $p->slug ?? null,
+                        'price' => $p->price,
+                        'main_image' => $p->main_image ? asset('storage/' . ltrim($p->main_image, '/')) : null,
+                        'rating_avg' => $p->rating_avg ?? null,
+                    ];
+                });
+        }
 
         return response()->json([
             'id' => $blog->id,
