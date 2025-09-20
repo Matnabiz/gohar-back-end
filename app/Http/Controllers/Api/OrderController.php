@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\Product;
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
@@ -29,14 +30,32 @@ class OrderController extends Controller
             return response()->json(['message' => 'Cart empty'], 422);
         }
 
+        // --- validate optional gift_id ---
+        $giftId = $request->input('gift_id');
+        $gift = null;
+        if ($giftId) {
+            $gift = Product::where('id', $giftId)
+                ->where('active', true)
+                ->where('price', '<', 300000)
+                ->first();
+
+            if (!$gift) {
+                return response()->json(['message' => 'Selected gift is invalid'], 422);
+            }
+        }
+
+        // calculate total (excluding gift)
         $total = $cart->items->sum(fn($it) => $it->price * $it->quantity);
 
+        // create order with gift_id
         $order = Order::create([
             'user_id' => $user->id,
             'total' => $total,
-            'status' => 'pending'
+            'status' => 'pending',
+            'gift_id' => $gift?->id, // null if no gift selected
         ]);
 
+        // create order items
         foreach ($cart->items as $it) {
             $order->items()->create([
                 'product_id' => $it->product_id,
@@ -46,11 +65,22 @@ class OrderController extends Controller
             ]);
         }
 
+        // add gift as an order item with price 0
+        if ($gift) {
+            $order->items()->create([
+                'product_id' => $gift->id,
+                'quantity' => 1,
+                'price' => 0,
+                'meta' => 'هدیه رایگان'
+            ]);
+        }
+
         // clear cart
         $cart->items()->delete();
 
-        return response()->json($order->load('items.product'));
+        return response()->json($order->load('items.product', 'gift'));
     }
+
 
     public function update(Request $request, $id)
     {

@@ -124,6 +124,7 @@ Route::put('/users/{user}', [UserManagementController::class, 'update']); // upd
 Route::delete('/users/{user}', [UserManagementController::class, 'destroy']); // delete user
 Route::get('/locations/states', [AddressController::class, 'getStates']);
 Route::get('/locations/cities/{stateId}', [AddressController::class, 'getCities']);
+Route::get('/gifts', [CheckoutController::class, 'eligibleGifts']);
 
 
 // Orders

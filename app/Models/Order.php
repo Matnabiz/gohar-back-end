@@ -57,4 +57,9 @@ class Order extends Model
     {
         return $q->orderBy('created_at', 'desc');
     }
+
+    public function gift()
+    {
+        return $this->belongsTo(Product::class, 'gift_id');
+    }
 }

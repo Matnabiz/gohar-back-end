@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use App\Models\Cart;
 use App\Models\User;
@@ -71,4 +72,30 @@ class CheckoutController extends Controller
 
         return response()->json(['message' => 'Address saved successfully']);
     }
+
+    public function eligibleGifts(Request $request)
+    {
+        // Return a small randomized list for the checkout UI (adjust limit as you see fit)
+        $gifts = Product::query()
+            ->where('active', true)
+            ->where('price', '<', 300000)
+            ->inRandomOrder()
+            ->limit(12)
+            ->get(['id','title','slug','price','main_image','rating_avg']);
+
+        // If you store only path in main_image, convert to full URL here:
+        $gifts = $gifts->map(function($p) {
+            return [
+                'id' => $p->id,
+                'title' => $p->title,
+                'slug' => $p->slug,
+                'price' => $p->price,
+                'main_image' => $p->main_image ? asset('storage/' . ltrim($p->main_image, '/')) : null,
+                'rating_avg' => $p->rating_avg,
+            ];
+        });
+
+        return response()->json($gifts);
+    }
+
 }
