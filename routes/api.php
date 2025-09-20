@@ -71,6 +71,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/user/avatar', [UserController::class, 'updateAvatar']);
     Route::get('/user/orders', [UserController::class, 'orders']);
     Route::get('/user/wishlist', [UserController::class, 'wishlist']);
+    Route::put('/user/address', [UserController::class, 'updateAddress']);
 });
 
 

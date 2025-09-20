@@ -10,7 +10,6 @@ class UserController extends Controller
     public function show(Request $request){
         return response()->json($request->user());
     }
-
     public function update(Request $request){
         $user = $request->user();
         $data = $request->validate([
@@ -22,7 +21,22 @@ class UserController extends Controller
         $user->fill($data)->save();
         return response()->json($request->user());
     }
+    public function updateAddress(Request $request){
+        $validated = $request->validate([
+            'province' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
+            'address' => 'required|string|max:500',
+            'postal_code' => 'required|string|max:20',
+        ]);
 
+        $user = auth()->user();
+        $user->update($validated);
+
+        return response()->json([
+            'message' => 'Address updated successfully',
+            'address' => $validated
+        ]);
+    }
     public function updateAvatar(Request $request){
         $request->validate(['avatar' => 'required|image|max:4096']);
         $path = $request->file('avatar')->store('avatars', 'public');

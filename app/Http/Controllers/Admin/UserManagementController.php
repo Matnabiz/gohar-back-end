@@ -29,7 +29,6 @@ class UserManagementController extends Controller
             'data'    => $user
         ], 201);
     }
-
     public function update(Request $request, User $user){
         $validated = $request->validate([
             'name' => 'string',
