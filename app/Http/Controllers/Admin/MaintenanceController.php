@@ -31,7 +31,7 @@ class MaintenanceController extends Controller
         $ip = $request->ip();
 
         if ($action === 'down') {
-            Artisan::call('down');
+            Artisan::call('down', ['--secret' => 'my-secret-path']);
         } else {
             Artisan::call('up');
         }
