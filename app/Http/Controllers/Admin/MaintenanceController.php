@@ -31,7 +31,7 @@ class MaintenanceController extends Controller
         $ip = $request->ip();
 
         if ($action === 'down') {
-            Artisan::call('down', ['--message' => $reason ?? 'Maintenance']);
+            Artisan::call('down');
         } else {
             Artisan::call('up');
         }
