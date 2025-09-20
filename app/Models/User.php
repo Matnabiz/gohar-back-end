@@ -27,7 +27,7 @@ class User extends Authenticatable
         'phone',
         'province',
         'city',
-        'address',
+        'street',
         'postal_code',
         'password',
         'is_admin'

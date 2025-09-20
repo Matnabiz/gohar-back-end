@@ -25,7 +25,7 @@ class UserController extends Controller
         $validated = $request->validate([
             'province' => 'required|string|max:255',
             'city' => 'required|string|max:255',
-            'address' => 'required|string|max:500',
+            'street' => 'required|string|max:500',
             'postal_code' => 'required|string|max:20',
         ]);
 
