@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\CategoryManagementController;
+use App\Http\Controllers\Admin\MaintenanceController;
 use App\Http\Controllers\Admin\ProductManagementController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Admin\CommentManagementController;
@@ -144,3 +145,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     });
 });
+
+
+Route::post('/admin/maintenance', [MaintenanceController::class, 'toggle']);
