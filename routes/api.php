@@ -121,6 +121,8 @@ Route::get('/users', [UserManagementController::class, 'index']);   // list user
 Route::post('/users', [UserManagementController::class, 'store']);  // create user
 Route::put('/users/{user}', [UserManagementController::class, 'update']); // update user
 Route::delete('/users/{user}', [UserManagementController::class, 'destroy']); // delete user
+Route::get('/locations/states', [LocationController::class, 'getStates']);
+Route::get('/locations/cities/{stateId}', [LocationController::class, 'getCities']);
 
 
 // Orders
