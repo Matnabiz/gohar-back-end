@@ -81,7 +81,6 @@ class OrderController extends Controller
         return response()->json($order->load('items.product', 'gift'));
     }
 
-
     public function update(Request $request, $id)
     {
         $order = Order::findOrFail($id);

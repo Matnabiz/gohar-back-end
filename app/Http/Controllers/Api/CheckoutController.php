@@ -80,7 +80,7 @@ class CheckoutController extends Controller
             ->where('active', true)
             ->where('price', '<', 300000)
             ->inRandomOrder()
-            ->limit(12)
+            ->limit(10)
             ->get(['id','title','slug','price','main_image','rating_avg']);
 
         // If you store only path in main_image, convert to full URL here:
