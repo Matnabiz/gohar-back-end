@@ -226,6 +226,7 @@ class ProductController extends Controller
             'main_image' => $product->main_image ? asset('storage/' . ltrim($product->main_image, '/')) : null,
             'images' => $imagesUrls,
             'material' => $product->material,
+            'dimensions' => $product->dimmensions,
             'color' => $product->color,
             'active' => $product->active,
             'stock' => $product->stock,
