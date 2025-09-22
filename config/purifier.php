@@ -38,7 +38,7 @@ return [
             blockquote,pre,code,span[style],
             a[href|title|target],img[src|alt|width|height],
             table,thead,tbody,tr,th,td,
-            iframe[src|width|height|allowfullscreen|frameborder]',
+            iframe[src|width|height|allowfullscreen|webkitallowfullscreen|mozallowfullscreen|frameborder]',
 
             // allow basic CSS properties that are commonly applied by rich text editors
             'CSS.AllowedProperties'   => 'color,background-color,font-weight,font-style,text-decoration,text-align,font-size',
@@ -49,7 +49,7 @@ return [
             // allow relative/absolute urls
             'URI.AllowedSchemes' => ['http', 'https', 'mailto'],
             'HTML.SafeIframe' => true,
-            'URI.SafeIframeRegexp' => "%^(https?:)?//www\.aparat\.com/video/video/embed/%",
+            'URI.SafeIframeRegexp' => "%^(https?:)?//www\.aparat\.com/video/video/embed/.*%",
         ],
         'test'    => [
             'Attr.EnableID' => 'true',
