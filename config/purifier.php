@@ -33,7 +33,13 @@ return [
         'full_html' => [
             'HTML.Doctype'             => 'HTML 4.01 Transitional',
             // allow headers, spans with style, images, tables, code blocks, etc
-            'HTML.Allowed' => 'h1,h2,h3,h4,h5,h6,p,br,strong,b,em,i,u,ul[class],ol[class],li[class],blockquote,pre,code,span[style],a[href|title|target],img[src|alt|width|height],table,thead,tbody,tr,th,td',
+            'HTML.Allowed' => 'h1,h2,h3,h4,h5,h6,p,br,strong,b,em,i,u,
+            ul[class],ol[class],li[class],
+            blockquote,pre,code,span[style],
+            a[href|title|target],img[src|alt|width|height],
+            table,thead,tbody,tr,th,td,
+            iframe[src|width|height|allowfullscreen|frameborder]',
+
             // allow basic CSS properties that are commonly applied by rich text editors
             'CSS.AllowedProperties'   => 'color,background-color,font-weight,font-style,text-decoration,text-align,font-size',
             'AutoFormat.AutoParagraph'=> true,
@@ -51,11 +57,6 @@ return [
         "youtube" => [
             "HTML.SafeIframe"      => 'true',
             "URI.SafeIframeRegexp" => "%^(http://|https://|//)(www.youtube.com/embed/|player.vimeo.com/video/)%",
-        ],
-        "aparat" => [
-            "HTML.SafeIframe"      => true,
-            "URI.SafeIframeRegexp" => "%^(https?:)?//www\.aparat\.com/video/video/embed/%",
-            "Attr.AllowedFrameTargets" => ["_blank", "_self"],
         ],
         'custom_definition' => [
             'id'  => 'html5-definitions',
