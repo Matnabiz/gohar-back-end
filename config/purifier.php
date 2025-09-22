@@ -117,8 +117,12 @@ return [
             ],
         ],
         'custom_attributes' => [
+            ['iframe', 'allowfullscreen', 'Bool'],
+            ['iframe', 'webkitallowfullscreen', 'Bool'],
+            ['iframe', 'mozallowfullscreen', 'Bool'],
             ['a', 'target', 'Enum#_blank,_self,_target,_top'],
         ],
+
         'custom_elements' => [
             ['u', 'Inline', 'Inline', 'Common'],
         ],
