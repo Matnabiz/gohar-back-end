@@ -42,6 +42,8 @@ return [
             'Attr.AllowedFrameTargets' => ['_blank', '_self'],
             // allow relative/absolute urls
             'URI.AllowedSchemes' => ['http', 'https', 'mailto'],
+            'HTML.SafeIframe' => true,
+            'URI.SafeIframeRegexp' => "%^(https?:)?//www\.aparat\.com/video/video/embed/%",
         ],
         'test'    => [
             'Attr.EnableID' => 'true',
@@ -49,6 +51,11 @@ return [
         "youtube" => [
             "HTML.SafeIframe"      => 'true',
             "URI.SafeIframeRegexp" => "%^(http://|https://|//)(www.youtube.com/embed/|player.vimeo.com/video/)%",
+        ],
+        "aparat" => [
+            "HTML.SafeIframe"      => true,
+            "URI.SafeIframeRegexp" => "%^(https?:)?//www\.aparat\.com/video/video/embed/%",
+            "Attr.AllowedFrameTargets" => ["_blank", "_self"],
         ],
         'custom_definition' => [
             'id'  => 'html5-definitions',
