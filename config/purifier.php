@@ -46,10 +46,11 @@ return [
             'AutoFormat.RemoveEmpty'  => true,
             // don't strip style attributes from spans
             'Attr.AllowedFrameTargets' => ['_blank', '_self'],
-            'Attr.AllowedAttributes' => ['li.data-list'],
             // allow relative/absolute urls
             'URI.AllowedSchemes' => ['http', 'https', 'mailto'],
             'HTML.SafeIframe' => true,
+            'Attr.EnableID' => true,       // enables id attribute if needed
+            'HTML.Trusted' => true,        // allows unknown attributes like data-list
             'URI.SafeIframeRegexp' => "%^(https?:)?//www\.aparat\.com/video/video/embed/.*%",
         ],
         'test'    => [
