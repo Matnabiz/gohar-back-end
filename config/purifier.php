@@ -46,6 +46,7 @@ return [
             'AutoFormat.RemoveEmpty'  => true,
             // don't strip style attributes from spans
             'Attr.AllowedFrameTargets' => ['_blank', '_self'],
+            'Attr.AllowedAttributes' => ['li.data-list'],
             // allow relative/absolute urls
             'URI.AllowedSchemes' => ['http', 'https', 'mailto'],
             'HTML.SafeIframe' => true,
