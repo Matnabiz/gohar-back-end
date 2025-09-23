@@ -34,7 +34,7 @@ return [
             'HTML.Doctype'             => 'HTML 4.01 Transitional',
             // allow headers, spans with style, images, tables, code blocks, etc
             'HTML.Allowed' => 'h1,h2,h3,h4,h5,h6,p,br,strong,b,em,i,u,
-            ul[class],ol[class],li[class],
+            ul[class],ol[class],li[class|data-list],
             blockquote,pre,code,span[style],
             a[href|title|target],img[src|alt|width|height],
             table,thead,tbody,tr,th,td,
