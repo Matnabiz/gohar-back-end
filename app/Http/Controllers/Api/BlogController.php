@@ -113,8 +113,7 @@ class BlogController extends Controller
 
 
     // POST create a blog
-    public function store(Request $request)
-    {
+    public function store(Request $request){
         $validatedData = $request->validate([
             'title'   => 'required|string|max:255',
             'content' => 'required|string',
@@ -215,4 +214,20 @@ class BlogController extends Controller
 
         return response()->json(['url' => $url], 201);
     }
+
+    public function uploadVideo(Request $request){
+        $request->validate([
+            'video' => 'required|mimes:mp4,mov,avi,webm|max:51200', // 50MB
+        ]);
+
+        if ($request->hasFile('video')) {
+            $path = $request->file('video')->store('videos', 'public');
+            $url = asset('storage/' . $path);
+            return response()->json(['url' => $url]);
+        }
+
+        return response()->json(['error' => 'No file uploaded'], 400);
+    }
+
+
 }

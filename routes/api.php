@@ -116,6 +116,8 @@ Route::get('/blogs/id/{id}', [BlogController::class, 'showById']);
 
 // Image upload route
 Route::post('/blogs/upload-image', [BlogController::class, 'uploadImage']);
+Route::post('/blogs/upload-video', [BlogController::class, 'uploadVideo']);
+
 
 // User Management Route
 Route::get('/users', [UserManagementController::class, 'index']);   // list users
