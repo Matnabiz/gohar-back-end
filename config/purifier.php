@@ -35,7 +35,7 @@ return [
             // allow headers, spans with style, images, tables, code blocks, etc
             'HTML.Allowed' => 'h1,h2,h3,h4,h5,h6,p,br,strong,b,em,i,u,
             ul[class],ol[class],li[class],
-            blockquote,pre,code,span[style],
+            blockquote,pre,code,span[style|class],
             a[href|title|target],img[src|alt|width|height],
             table,thead,tbody,tr,th,td,
             iframe[src|width|height|allowfullscreen|frameborder]',
