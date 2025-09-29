@@ -34,5 +34,16 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    'mellat' => [
+        'terminal_id' => env('MELLAT_TERMINAL_ID'),
+        'user' => env('MELLAT_USER'),
+        'password' => env('MELLAT_PASSWORD'),
+        'wsdl' => env('MELLAT_WSDL'),
+        'startpay' => env('MELLAT_STARTPAY'),
+        'callback' => env('MELLAT_CALLBACK'),
+        'allowed_ips' => array_filter(array_map('trim', explode(',', env('MELLAT_ALLOWED_IPS','')))),
+        'amount_multiplier' => (int) env('MELLAT_AMOUNT_MULTIPLIER', 1),
+    ],
+
 
 ];
