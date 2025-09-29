@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\CheckoutController;
 use App\Http\Controllers\Api\CommentController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\SearchController;
 use App\Http\Controllers\Api\UserController;
@@ -154,4 +155,8 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 
+Route::post('/payment/start', [PaymentController::class, 'start']);
+Route::post('/payment/callback', [PaymentController::class, 'callback'])->name('payment.callback');
+
 Route::post('/admin/maintenance', [MaintenanceController::class, 'toggle']);
+
