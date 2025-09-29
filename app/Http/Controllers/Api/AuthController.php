@@ -15,6 +15,7 @@ class AuthController extends Controller {
                 'email'    => 'nullable|string|email|max:255|unique:users|required_without:phone',
                 'phone'    => 'nullable|string|regex:/^[0-9]{10,15}$/|unique:users|required_without:email',
                 'password' => 'required|string|min:8|confirmed',
+                'name' => 'required|string',
             ]);
         } catch (ValidationException $e) {
             return response()->json([
@@ -27,6 +28,7 @@ class AuthController extends Controller {
             'email' => $validated['email'] ?? null,
             'phone' => $validated['phone'] ?? null,
             'password' => Hash::make($validated['password']),
+            'name' => $validated['name'] ?? null,
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
