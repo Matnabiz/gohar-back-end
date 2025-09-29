@@ -72,65 +72,95 @@ class PaymentController extends Controller
     // CALLBACK endpoint that Mellat posts to. This must be public and on your domain.
     public function callback(Request $request)
     {
+        // Frontend base (set FRONTEND_URL in .env e.g. https://goharesadaf.ir)
+        $frontendBase = env('FRONTEND_URL', config('app.url'));
+
+        // Helper: small HTML page that client-side redirects to $url (200 OK)
+        $redirectHtml = function (string $url, string $msg = '') {
+            $escapedUrl = e($url);
+            $escapedMsg = e($msg);
+            return <<<HTML
+<!doctype html>
+<html lang="fa">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>در حال انتقال...</title>
+  <meta http-equiv="refresh" content="0;url={$escapedUrl}">
+  <script>window.location.replace("{$escapedUrl}");</script>
+  <style>body{font-family:sans-serif;direction:rtl;text-align:center;padding:40px}</style>
+</head>
+<body>
+  <h3>در حال انتقال به صفحه پرداخت...</h3>
+  <p>{$escapedMsg}</p>
+  <p><a href="{$escapedUrl}">در صورت عدم انتقال اینجا کلیک کنید</a></p>
+</body>
+</html>
+HTML;
+        };
+
         // Mellat posts: RefId, ResCode, SaleOrderId, SaleReferenceId, CardHolderInfo
         $resCode = (string) ($request->input('ResCode') ?? '');
         $refId = $request->input('RefId');
         $saleOrderId = $request->input('SaleOrderId');
         $saleReferenceId = $request->input('SaleReferenceId');
 
-        // Optional IP whitelist check
+        // Optional IP whitelist check (config/services.php mellat.allowed_ips)
         $allowed = config('services.mellat.allowed_ips', []);
         if (!empty($allowed)) {
             $ip = $request->ip();
             if (!in_array($ip, $allowed)) {
-                \Log::warning('Mellat callback from unknown IP', ['ip'=>$ip,'payload'=>$request->all()]);
-                // reply 403 so we can investigate — but many banks expect 200; choose action by policy
-                return response('Forbidden', 403);
+                \Log::warning('Mellat callback from unknown IP', ['ip' => $ip, 'payload' => $request->all()]);
+                // NOTE: we continue and return 200 to avoid bank retries; change to return 403 if you prefer strict blocking.
             }
         }
 
         // find payment by ref_id or merchant_order_id (SaleOrderId)
         $payment = null;
         if ($refId) {
-            $payment = Payment::where('ref_id', $refId)->latest()->first();
+            $payment = \App\Models\Payment::where('ref_id', $refId)->latest()->first();
         }
         if (!$payment && $saleOrderId) {
-            $payment = Payment::where('merchant_order_id', $saleOrderId)->latest()->first();
+            $payment = \App\Models\Payment::where('merchant_order_id', $saleOrderId)->latest()->first();
         }
         if (!$payment) {
             \Log::warning('Mellat callback: payment not found', $request->all());
-            // respond 200 so bank isn't retried. But log for human check.
-            return response('OK', 200);
+            // Redirect user to a generic frontend failure page (200 OK)
+            $url = rtrim($frontendBase, '/') . '/payment/failure';
+            return response($redirectHtml($url, 'پرداخت ناموفق — شناسه تراکنش یافت نشد'), 200)
+                ->header('Content-Type', 'text/html');
         }
 
+        // Save gateway fields
         $payment->sale_order_id = $saleOrderId;
         $payment->sale_reference_id = $saleReferenceId;
         $payment->raw_response = json_encode($request->all());
         $payment->save();
 
+        // If the bank reports non-zero, mark failed and send to frontend failure page
         if ($resCode !== '0') {
             $payment->status = 'failed';
             $payment->save();
-            // redirect the user (bank will follow this response)
-            $frontendFailUrl = config('app.url') . '/payment/failure?order_id=' . $payment->order_id . '&code=' . $resCode;
-            return redirect($frontendFailUrl);
+
+            $url = rtrim($frontendBase, '/') . '/payment/failure?order_id=' . $payment->order_id . '&code=' . urlencode($resCode);
+            return response($redirectHtml($url, 'پرداخت ناموفق'), 200)->header('Content-Type', 'text/html');
         }
 
-        // For verify, create a new unique verify id (must be unique)
-        $verifyOrderId = time() + $payment->id;
+        // Create unique verify ID
+        $verifyOrderId = time() + (int)$payment->id;
         $payment->verify_order_id = (string)$verifyOrderId;
         $payment->save();
 
         // 1) Verify
         $verifyRes = $this->gateway->bpVerifyRequest($verifyOrderId, $saleOrderId, $saleReferenceId);
         if (isset($verifyRes['error'])) {
-            \Log::error('Mellat verify error', ['err'=>$verifyRes,'payment'=>$payment]);
-            // Try inquiry later — mark pending
+            \Log::error('Mellat verify error', ['err' => $verifyRes, 'payment' => $payment->id]);
             $payment->status = 'pending';
-            $payment->raw_response .= "\nverify_error:".($verifyRes['message'] ?? '');
+            $payment->raw_response .= "\nverify_error:" . ($verifyRes['message'] ?? '');
             $payment->save();
-            $frontendPending = config('app.url') . '/payment/pending?order_id=' . $payment->order_id;
-            return redirect($frontendPending);
+
+            $url = rtrim($frontendBase, '/') . '/payment/pending?order_id=' . $payment->order_id;
+            return response($redirectHtml($url, 'پرداخت در حال بررسی'), 200)->header('Content-Type', 'text/html');
         }
 
         $verifyCode = $verifyRes['code'] ?? null;
@@ -138,47 +168,53 @@ class PaymentController extends Controller
         $payment->save();
 
         if ($verifyCode !== '0') {
-            \Log::warning('Mellat verify failed', ['code'=>$verifyCode,'payment'=>$payment->id]);
+            \Log::warning('Mellat verify failed', ['code' => $verifyCode, 'payment' => $payment->id]);
             $payment->status = 'failed';
             $payment->save();
-            $frontendFailUrl = config('app.url') . '/payment/failure?order_id=' . $payment->order_id . '&code=' . $verifyCode;
-            return redirect($frontendFailUrl);
+
+            $url = rtrim($frontendBase, '/') . '/payment/failure?order_id=' . $payment->order_id . '&code=' . urlencode($verifyCode);
+            return response($redirectHtml($url, 'خطا در تایید پرداخت'), 200)->header('Content-Type', 'text/html');
         }
 
-        // 2) Settle (finalize)
+        // 2) Settle
         $settleRes = $this->gateway->bpSettleRequest($verifyOrderId, $saleOrderId, $saleReferenceId);
         if (isset($settleRes['error'])) {
-            \Log::error('Mellat settle error', ['err'=>$settleRes,'payment'=>$payment]);
+            \Log::error('Mellat settle error', ['err' => $settleRes, 'payment' => $payment->id]);
             $payment->status = 'pending';
-            $payment->raw_response .= "\nsettle_error:".($settleRes['message'] ?? '');
+            $payment->raw_response .= "\nsettle_error:" . ($settleRes['message'] ?? '');
             $payment->save();
-            $frontendPending = config('app.url') . '/payment/pending?order_id=' . $payment->order_id;
-            return redirect($frontendPending);
+
+            $url = rtrim($frontendBase, '/') . '/payment/pending?order_id=' . $payment->order_id;
+            return response($redirectHtml($url, 'تسویه در حال بررسی'), 200)->header('Content-Type', 'text/html');
         }
 
         $settleCode = $settleRes['code'] ?? null;
         $payment->raw_response .= "\nsettle_raw:" . ($settleRes['raw'] ?? '');
         $payment->save();
 
-        // According to docs, settle code 0 = success, 45 = already settled (treat as success)
+        // success -> update order and redirect to frontend success
         if ($settleCode === '0' || $settleCode === '45') {
             $payment->status = 'settled';
             $payment->save();
 
-            // update order status (adjust for your order model)
+            // update order
             $order = $payment->order;
-            $order->status = 'paid';
-            $order->transaction_id = $saleReferenceId;
-            $order->save();
+            if ($order) {
+                $order->status = 'paid';
+                $order->transaction_id = $saleReferenceId;
+                $order->save();
+            }
 
-            $frontendSuccess = config('app.url') . '/payment/success?order_id=' . $order->id;
-            return redirect($frontendSuccess);
+            $url = rtrim($frontendBase, '/') . '/payment/success?order_id=' . ($order->id ?? $payment->order_id);
+            return response($redirectHtml($url, 'پرداخت با موفقیت انجام شد'), 200)->header('Content-Type', 'text/html');
         }
 
         // otherwise treat as failure
         $payment->status = 'failed';
         $payment->save();
-        $frontendFailUrl = config('app.url') . '/payment/failure?order_id=' . $payment->order_id . '&code=' . $settleCode;
-        return redirect($frontendFailUrl);
+
+        $url = rtrim($frontendBase, '/') . '/payment/failure?order_id=' . $payment->order_id . '&code=' . urlencode($settleCode);
+        return response($redirectHtml($url, 'خطا در تسویه پرداخت'), 200)->header('Content-Type', 'text/html');
     }
+
 }
