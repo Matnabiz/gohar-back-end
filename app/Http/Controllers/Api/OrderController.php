@@ -119,4 +119,15 @@ class OrderController extends Controller
         $orders = $request->user()->orders()->with('items.product')->latest()->get();
         return response()->json($orders);
     }
+
+    public function status(Order $order){
+        return response()->json([
+            'id'             => $order->id,
+            'total'          => $order->total,
+            'status'         => $order->status,
+            'transaction_id' => $order->transaction_id,
+            'created_at'     => $order->created_at,
+        ]);
+    }
+
 }
