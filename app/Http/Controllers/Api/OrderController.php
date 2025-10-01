@@ -102,17 +102,29 @@ class OrderController extends Controller
 
     public function destroy(Request $request, $id)
     {
-        $order = Order::findOrFail($id);
+        $user = $request->user();
 
-        if (!$request->user()->is_admin && $order->user_id !== $request->user()->id) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+        // Find the order
+        $order = Order::where('id', $id)
+            ->where('user_id', $user->id)
+            ->where('status', 'pending') // only pending orders
+            ->first();
+
+        if (!$order) {
+            return response()->json([
+                'message' => 'Order not found or cannot be deleted.'
+            ], 404);
         }
 
-        // If you want soft delete, make sure Order model uses SoftDeletes
+        // Delete the order and its items
+        $order->items()->delete();
         $order->delete();
 
-        return response()->json(['message' => 'Order deleted']);
+        return response()->json([
+            'message' => 'Order deleted successfully.'
+        ]);
     }
+
 
     public function myOrders(Request $request)
     {

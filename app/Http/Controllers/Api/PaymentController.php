@@ -70,8 +70,7 @@ class PaymentController extends Controller
     }
 
     // CALLBACK endpoint that Mellat posts to. This must be public and on your domain.
-    public function callback(Request $request)
-    {
+    public function callback(Request $request){
         // Frontend base (set FRONTEND_URL in .env e.g. https://goharesadaf.ir)
         $frontendBase = env('FRONTEND_URL', config('app.url'));
 
