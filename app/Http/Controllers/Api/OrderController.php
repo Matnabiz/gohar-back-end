@@ -130,4 +130,31 @@ class OrderController extends Controller
         ]);
     }
 
+    public function unpaidCount(Request $request){
+        $user = $request->user();
+
+        // Adjust statuses according to your app.
+        // Use all statuses that mean "not yet paid" (e.g. 'pending','initiated')
+        $unpaidStatuses = ['pending', 'initiated'];
+
+        $count = Order::where('user_id', $user->id)
+            ->whereIn('status', $unpaidStatuses)
+            ->count();
+
+        return response()->json(['count' => $count]);
+    }
+
+    public function unpaidList(Request $request){
+        $user = $request->user();
+        $unpaidStatuses = ['pending', 'initiated'];
+
+        $orders = Order::where('user_id', $user->id)
+            ->whereIn('status', $unpaidStatuses)
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get(['id','total','status','created_at','transaction_id']);
+
+        return response()->json(['orders' => $orders]);
+    }
+
 }
