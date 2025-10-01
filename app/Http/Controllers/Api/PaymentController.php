@@ -17,14 +17,14 @@ class PaymentController extends Controller
         $this->gateway = $gateway;
     }
 
-    // START payment: call after order created (or pass order_id)
     public function start(Request $request)
     {
         $request->validate(['order_id' => 'required|integer']);
         $order = Order::findOrFail($request->order_id);
 
-        // If order is already paid, block new payments
-        if ($order->status === 'paid') {
+        // Block if already paid / settled
+        $finalStatuses = ['paid', 'settled', 'completed'];
+        if (in_array($order->status, $finalStatuses, true)) {
             return response()->json([
                 'status' => 'fail',
                 'message' => 'این سفارش قبلاً پرداخت شده است.'
@@ -33,27 +33,62 @@ class PaymentController extends Controller
 
         // compute amount to send to gateway (Rials/Tomans)
         $mult = config('services.mellat.amount_multiplier', 1);
-        $amount = (int) ($order->total * $mult); // ensure numeric
+        $amount = (int) round($order->total * $mult);
 
-        // generate a unique merchant_order_id for each payment attempt
-        // e.g., orderId + timestamp
-        $merchantOrderId = $order->id . '-' . time();
+        if ($amount <= 0) {
+            return response()->json([
+                'status' => 'fail',
+                'message' => 'مبلغ تراکنش نامعتبر است.'
+            ], 400);
+        }
 
-        // create a new payment record for this attempt
-        $payment = Payment::create([
-            'order_id' => $order->id,
-            'merchant_order_id' => $merchantOrderId,
-            'amount' => $amount,
-            'status' => 'initiated',
-        ]);
+        // Generate unique merchant_order_id for each attempt
+        // Format: {orderId}-{timestamp}-{random}
+        $merchantOrderId = $order->id . '-' . time() . '-' . Str::random(6);
+
+        // Create a new payment record for this attempt
+        try {
+            $payment = Payment::create([
+                'order_id' => $order->id,
+                'merchant_order_id' => $merchantOrderId,
+                'amount' => $amount,
+                'status' => 'initiated',
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Payment create failed', ['err' => $e->getMessage(), 'order_id' => $order->id]);
+            return response()->json([
+                'status' => 'fail',
+                'message' => 'خطا در ایجاد رکورد پرداخت'
+            ], 500);
+        }
 
         $callbackUrl = config('services.mellat.callback'); // must be publicly accessible
-        $res = $this->gateway->bpPayRequest($merchantOrderId, $amount, $callbackUrl);
+        $startUrlConfig = config('services.mellat.startpay') ?: 'https://bpm.shaparak.ir/pgwchannel/startpay.mellat';
 
+        // Call gateway
+        try {
+            $res = $this->gateway->bpPayRequest($merchantOrderId, $amount, $callbackUrl);
+        } catch (\Exception $e) {
+            // Save error on payment and return server error
+            $payment->status = 'failed';
+            $payment->raw_response = 'exception: ' . $e->getMessage();
+            $payment->save();
+
+            Log::error('Gateway call exception', ['err' => $e->getMessage(), 'payment_id' => $payment->id]);
+
+            return response()->json([
+                'status' => 'fail',
+                'message' => 'Gateway error: ' . $e->getMessage()
+            ], 500);
+        }
+
+        // If gateway wrapper returned an error array
         if (isset($res['error'])) {
             $payment->status = 'failed';
             $payment->raw_response = $res['message'] ?? json_encode($res);
             $payment->save();
+
+            Log::warning('Gateway returned wrapper error', ['res' => $res, 'payment_id' => $payment->id]);
 
             return response()->json([
                 'status' => 'fail',
@@ -61,30 +96,66 @@ class PaymentController extends Controller
             ], 500);
         }
 
-        $code = $res['code'] ?? null;
-        $ref = $res['ref'] ?? null;
-        $payment->raw_response = $res['raw'] ?? null;
+        // Normalize response fields (some client wrappers return array, some return ['code','ref'] etc.)
+        $code = null;
+        $ref = null;
+        $raw = null;
 
-        if ($code === '0' && $ref) {
-            $payment->ref_id = $ref;
+        if (is_string($res)) {
+            // e.g. "0,AF82..."
+            $raw = $res;
+            $parts = explode(',', trim($res), 2);
+            $code = $parts[0] ?? null;
+            $ref = $parts[1] ?? null;
+        } elseif (is_array($res)) {
+            // prefer named keys
+            $code = $res['code'] ?? ($res[0] ?? null);
+            $ref = $res['ref'] ?? ($res[1] ?? null);
+            $raw = $res['raw'] ?? json_encode($res);
+        } elseif (is_object($res)) {
+            $raw = json_encode($res);
+            $code = property_exists($res, 'code') ? $res->code : (property_exists($res, 'return') ? $res->return : null);
+            // try parsing if return has comma
+            if (is_string($code) && str_contains($code, ',')) {
+                $parts = explode(',', $code, 2);
+                $code = $parts[0] ?? $code;
+                $ref = $parts[1] ?? $ref;
+            }
+        } else {
+            $raw = json_encode($res);
+        }
+
+        // persist raw response at least
+        $payment->raw_response = $raw ?? ($res['raw'] ?? json_encode($res));
+
+        // success case — code '0' with a RefId
+        if ((string)$code === '0' && !empty($ref)) {
+            $payment->ref_id = (string)$ref;
             $payment->status = 'initiated';
             $payment->save();
 
             return response()->json([
                 'status' => 'ok',
                 'ref' => $ref,
-                'start_url' => config('services.mellat.startpay'),
+                'start_url' => $startUrlConfig,
                 'payment_id' => $payment->id,
             ]);
         }
 
-        // fallback if gateway returned error code
+        // otherwise treat as gateway-level failure
         $payment->status = 'failed';
         $payment->save();
 
+        Log::warning('Gateway returned non-0 code', [
+            'code' => $code,
+            'ref' => $ref,
+            'payment_id' => $payment->id,
+            'raw' => $payment->raw_response,
+        ]);
+
         return response()->json([
             'status' => 'fail',
-            'message' => 'Gateway returned code ' . $code
+            'message' => 'Gateway returned code ' . ($code ?? 'null')
         ], 400);
     }
 
