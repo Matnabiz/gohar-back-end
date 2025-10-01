@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\CategoryManagementController;
 use App\Http\Controllers\Admin\MaintenanceController;
+use App\Http\Controllers\Admin\OrderManagementController;
 use App\Http\Controllers\Admin\ProductManagementController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Admin\CommentManagementController;
@@ -135,7 +136,8 @@ Route::post('orders', [OrderController::class, 'store']);
 Route::get('orders', [OrderController::class, 'index']);
 Route::get('orders/{id}', [OrderController::class, 'show']);
 Route::put('orders', [OrderController::class, 'update']);
-Route::delete('orders', [OrderManagementController::class, 'destroy']);
+Route::delete('admin/orders', [OrderManagementController::class, 'destroy']);
+Route::delete('orders', [OrderController::class, 'destroy']);
 Route::get('/orders/{order}/status', [OrderController::class, 'status']);
 Route::get('/unpaid-count', [OrderController::class, 'unpaidCount']);
 Route::get('/unpaid', [OrderController::class, 'unpaidList']);

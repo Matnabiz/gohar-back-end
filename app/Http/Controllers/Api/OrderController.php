@@ -125,7 +125,6 @@ class OrderController extends Controller
         ]);
     }
 
-
     public function myOrders(Request $request)
     {
         $orders = $request->user()->orders()->with('items.product')->latest()->get();
