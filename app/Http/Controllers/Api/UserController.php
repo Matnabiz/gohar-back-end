@@ -46,8 +46,13 @@ class UserController extends Controller
         return ['avatar_url' => Storage::url($path)];
     }
 
-    public function orders(Request $request){
-        return $request->user()->orders()->latest()->get();
+    public function orders(Request $request)
+    {
+        return $request->user()
+            ->orders()
+            ->with(['items.product']) // eager load items + product details
+            ->latest()
+            ->get();
     }
 
     public function wishlist(Request $request){
