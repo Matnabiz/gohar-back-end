@@ -23,12 +23,23 @@ class PaymentController extends Controller
         $request->validate(['order_id' => 'required|integer']);
         $order = Order::findOrFail($request->order_id);
 
-        // compute amount that should be sent to gateway (Rials/Tomans)
-        $mult = config('services.mellat.amount_multiplier', 1);
-        $amount = (int) ($order->total * $mult); // be sure order->total numeric
+        // If order is already paid, block new payments
+        if ($order->status === 'paid') {
+            return response()->json([
+                'status' => 'fail',
+                'message' => 'این سفارش قبلاً پرداخت شده است.'
+            ], 400);
+        }
 
-        // merchant_order_id must be unique for each bpPayRequest
-        $merchantOrderId = (string) $order->id; // OK to use DB id (unique)
+        // compute amount to send to gateway (Rials/Tomans)
+        $mult = config('services.mellat.amount_multiplier', 1);
+        $amount = (int) ($order->total * $mult); // ensure numeric
+
+        // generate a unique merchant_order_id for each payment attempt
+        // e.g., orderId + timestamp
+        $merchantOrderId = $order->id . '-' . time();
+
+        // create a new payment record for this attempt
         $payment = Payment::create([
             'order_id' => $order->id,
             'merchant_order_id' => $merchantOrderId,
@@ -43,7 +54,11 @@ class PaymentController extends Controller
             $payment->status = 'failed';
             $payment->raw_response = $res['message'] ?? json_encode($res);
             $payment->save();
-            return response()->json(['status'=>'fail','message'=>'Gateway error: '.$res['message']], 500);
+
+            return response()->json([
+                'status' => 'fail',
+                'message' => 'Gateway error: ' . ($res['message'] ?? 'نامشخص')
+            ], 500);
         }
 
         $code = $res['code'] ?? null;
@@ -55,7 +70,6 @@ class PaymentController extends Controller
             $payment->status = 'initiated';
             $payment->save();
 
-            // return ref to frontend (frontend will POST RefId to startpay URL)
             return response()->json([
                 'status' => 'ok',
                 'ref' => $ref,
@@ -64,10 +78,16 @@ class PaymentController extends Controller
             ]);
         }
 
+        // fallback if gateway returned error code
         $payment->status = 'failed';
         $payment->save();
-        return response()->json(['status'=>'fail','message'=>'Gateway returned code '.$code], 400);
+
+        return response()->json([
+            'status' => 'fail',
+            'message' => 'Gateway returned code ' . $code
+        ], 400);
     }
+
 
     // CALLBACK endpoint that Mellat posts to. This must be public and on your domain.
     public function callback(Request $request){
