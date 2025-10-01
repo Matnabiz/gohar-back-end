@@ -100,11 +100,9 @@ class OrderController extends Controller
         return response()->json($order->load('items.product'));
     }
 
-    public function destroy(Request $request, $id)
-    {
+    public function destroy(Request $request, $id){
         $user = $request->user();
 
-        // Find the order
         $order = Order::where('id', $id)
             ->where('user_id', $user->id)
             ->where('status', 'pending') // only pending orders
