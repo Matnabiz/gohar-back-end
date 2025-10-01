@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Services\MellatGateway;
 use App\Models\Order;
 use App\Models\Payment;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class PaymentController extends Controller
@@ -44,7 +45,7 @@ class PaymentController extends Controller
 
         // Generate unique merchant_order_id for each attempt
         // Format: {orderId}-{timestamp}-{random}
-        $merchantOrderId = $order->id . '-' . time() . '-' . Str::random(6);
+        $merchantOrderId = (string) ($order->id . str_pad(mt_rand(0,999999), 6, '0', STR_PAD_LEFT));
 
         // Create a new payment record for this attempt
         try {
@@ -242,7 +243,7 @@ HTML;
         $payment->save();
 
         // 1) Verify
-        $verifyRes = $this->gateway->bpVerifyRequest($verifyOrderId, $saleOrderId, $saleReferenceId);
+        $verifyRes = $this->gateway->bpVerifyRequest($payment->merchant_order_id, $saleOrderId, $saleReferenceId);
         if (isset($verifyRes['error'])) {
             \Log::error('Mellat verify error', ['err' => $verifyRes, 'payment' => $payment->id]);
             $payment->status = 'pending';
