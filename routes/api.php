@@ -137,8 +137,8 @@ Route::get('orders/{id}', [OrderController::class, 'show']);
 Route::put('orders', [OrderController::class, 'update']);
 Route::delete('orders', [OrderController::class, 'destroy']);
 Route::get('/orders/{order}/status', [OrderController::class, 'status']);
-Route::get('/orders/unpaid-count', [OrderController::class, 'unpaidCount']);
-Route::get('/orders/unpaid', [OrderController::class, 'unpaidList']);
+Route::get('/unpaid-count', [OrderController::class, 'unpaidCount']);
+Route::get('/unpaid', [OrderController::class, 'unpaidList']);
 
 
 Route::get('/search', [SearchController::class, 'search']);
