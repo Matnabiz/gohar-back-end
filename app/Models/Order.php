@@ -11,7 +11,6 @@ class Order extends Model
 {
     use HasFactory;
 
-    // You can either use $fillable or $guarded. Using guarded = [] allows mass assignment for all fields.
     protected $guarded = [];
 
     // Cast JSON/meta fields to array automatically.
