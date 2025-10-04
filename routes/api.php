@@ -136,7 +136,7 @@ Route::post('orders', [OrderController::class, 'store']);
 Route::get('orders', [OrderController::class, 'index']);
 Route::get('orders/{id}', [OrderController::class, 'show']);
 Route::put('orders/{id}', [OrderController::class, 'update']);
-Route::delete('admin/orders', [OrderManagementController::class, 'destroy']);
+Route::delete('admin/orders/{id}', [OrderManagementController::class, 'destroy']);
 Route::delete('orders/{id}', [OrderController::class, 'destroy']);
 Route::get('/orders/{order}/status', [OrderController::class, 'status']);
 Route::get('/unpaid-count', [OrderController::class, 'unpaidCount']);
