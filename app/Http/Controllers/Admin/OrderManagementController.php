@@ -8,7 +8,8 @@ use Illuminate\Http\Request;
 
 class OrderManagementController extends Controller
 {
-    public function index(Request $request){
+    public function index(Request $request)
+    {
         $query = Order::with(['user', 'items.product']);
 
         if ($request->filled('status')) {
@@ -20,25 +21,25 @@ class OrderManagementController extends Controller
         }
 
         if ($request->filled('province')) {
-            $query->where('province', 'like', '%' . $request->province . '%');
+            $query->whereHas('user', fn($q) => $q->where('province', 'like', '%' . $request->province . '%'));
         }
 
         if ($request->filled('city')) {
-            $query->where('city', 'like', '%' . $request->city . '%');
+            $query->whereHas('user', fn($q) => $q->where('city', 'like', '%' . $request->city . '%'));
         }
 
+        // date filters
         if ($request->filled('date_from')) {
             $query->whereDate('created_at', '>=', $request->date_from);
         }
-
         if ($request->filled('date_to')) {
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
+        // total filters
         if ($request->filled('min_total')) {
             $query->where('total', '>=', $request->min_total);
         }
-
         if ($request->filled('max_total')) {
             $query->where('total', '<=', $request->max_total);
         }
@@ -46,21 +47,20 @@ class OrderManagementController extends Controller
         if ($request->filled('q')) {
             $q = $request->q;
             $query->where(function ($sub) use ($q) {
-                $sub->whereHas('user', function ($uq) use ($q) {
-                    $uq->where('name', 'like', "%$q%")
-                        ->orWhere('email', 'like', "%$q%");
-                })->orWhere('id', $q);
+                $sub->whereHas('user', fn($uq) => $uq->where('name', 'like', "%$q%")
+                    ->orWhere('email', 'like', "%$q%"))
+                    ->orWhere('id', $q);
             });
         }
 
+        // sorting
         $sortBy = $request->get('sort_by', 'created_at');
         $sortDir = $request->get('sort_dir', 'desc');
         $allowedSorts = ['id', 'total', 'status', 'created_at'];
+        if (!in_array($sortBy, $allowedSorts)) $sortBy = 'created_at';
+        $query->orderBy($sortBy, $sortDir);
 
-        if (in_array($sortBy, $allowedSorts)) {
-            $query->orderBy($sortBy, $sortDir);
-        }
-
+        // pagination
         $perPage = (int) $request->get('per_page', 15);
 
         return response()->json($query->paginate($perPage));
