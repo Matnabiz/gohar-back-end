@@ -30,11 +30,17 @@ class OrderController extends Controller
             return response()->json(['message' => 'Cart empty'], 422);
         }
 
-        // --- validate optional gift_id ---
-        $giftId = $request->input('gift_id');
+        // --- validate request ---
+        $data = $request->validate([
+            'gift_id' => 'nullable|integer',
+            'delivery_option' => 'required|string|in:snapp,post,express',
+            'shipping_cost' => 'required|numeric|min:0',
+        ]);
+
+        // --- validate gift if provided ---
         $gift = null;
-        if ($giftId) {
-            $gift = Product::where('id', $giftId)
+        if (!empty($data['gift_id'])) {
+            $gift = Product::where('id', $data['gift_id'])
                 ->where('active', true)
                 ->where('price', '<', 300000)
                 ->first();
@@ -44,41 +50,49 @@ class OrderController extends Controller
             }
         }
 
-        // calculate total (excluding gift)
-        $total = $cart->items->sum(fn($it) => $it->price * $it->quantity);
+        // --- calculate subtotal (excluding gift) ---
+        $subtotal = $cart->items->sum(fn($it) => $it->price * $it->quantity);
 
-        // create order with gift_id
+        // --- final total = subtotal + shipping ---
+        $total = $subtotal + (float)$data['shipping_cost'];
+
+        // --- create order ---
         $order = Order::create([
-            'user_id' => $user->id,
-            'total' => $total,
-            'status' => 'pending',
-            'gift_id' => $gift?->id, // null if no gift selected
+            'user_id'         => $user->id,
+            'subtotal'        => $subtotal,
+            'total'           => $total,
+            'shipping_cost'   => $data['shipping_cost'],
+            'delivery_method' => $data['delivery_option'],
+            'status'          => 'pending',
+            'gift_id'         => $gift?->id, // null if no gift selected
         ]);
 
-        // create order items
+        // --- create order items ---
         foreach ($cart->items as $it) {
             $order->items()->create([
                 'product_id' => $it->product_id,
-                'quantity' => $it->quantity,
-                'price' => $it->price,
-                'meta' => null
+                'quantity'   => $it->quantity,
+                'price'      => $it->price,
+                'meta'       => null,
             ]);
         }
 
-        // add gift as an order item with price 0
+        // --- add gift as an order item with price 0 ---
         if ($gift) {
             $order->items()->create([
                 'product_id' => $gift->id,
-                'quantity' => 1,
-                'price' => 0,
-                'meta' => 'هدیه رایگان'
+                'quantity'   => 1,
+                'price'      => 0,
+                'meta'       => 'هدیه رایگان',
             ]);
         }
 
-        // clear cart
+        // --- clear cart ---
         $cart->items()->delete();
 
-        return response()->json($order->load('items.product', 'gift'));
+        return response()->json(
+            $order->load('items.product', 'gift')
+        );
     }
 
     public function update(Request $request, $id)
