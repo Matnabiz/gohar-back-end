@@ -62,7 +62,7 @@ class OrderController extends Controller
             'subtotal'        => $subtotal,
             'total'           => $total,
             'shipping_cost'   => $data['shipping_cost'],
-            'delivery_method' => $data['delivery_option'],
+            'delivery_option' => $data['delivery_option'],
             'status'          => 'pending',
             'gift_id'         => $gift?->id, // null if no gift selected
         ]);
