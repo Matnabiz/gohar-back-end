@@ -97,6 +97,7 @@ Route::get('admin/users', [UserManagementController::class, 'index']);
 Route::post('admin/products', [ProductManagementController::class, 'store']);
 Route::put('admin/products/{id}', [ProductManagementController::class, 'update']);
 Route::delete('admin/products/{id}', [ProductManagementController::class, 'destroy']);
+Route::get('/admin/products/export', [ProductExportController::class, 'export']);
 Route::get('admin/products', [ProductManagementController::class, 'index']);
 Route::get('admin/categories', [CategoryManagementController::class, 'index']);
 Route::post('admin/categories', [CategoryManagementController::class, 'store']);
