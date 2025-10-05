@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\CategoryManagementController;
 use App\Http\Controllers\Admin\MaintenanceController;
 use App\Http\Controllers\Admin\OrderManagementController;
+use App\Http\Controllers\Admin\ProductExportController;
 use App\Http\Controllers\Admin\ProductManagementController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Admin\CommentManagementController;
