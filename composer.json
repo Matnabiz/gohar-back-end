@@ -7,13 +7,14 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "ext-soap": "*",
         "intervention/image": "^3.11",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.2",
         "laravel/tinker": "^2.10.1",
+        "maatwebsite/excel": "^3.1",
         "mews/purifier": "^3.4",
-        "spatie/laravel-permission": "^6.21",
-        "ext-soap": "*"
+        "spatie/laravel-permission": "^6.21"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
