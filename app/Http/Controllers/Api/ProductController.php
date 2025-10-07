@@ -228,6 +228,8 @@ class ProductController extends Controller
             'material' => $product->material,
             'dimensions' => $product->dimensions,
             'color' => $product->color,
+            'discount_percentage' => $product->discount_percentage,
+            'on_sale' => $product->on_sale,
             'active' => $product->active,
             'stock' => $product->stock,
             'category' => $categoryData,
