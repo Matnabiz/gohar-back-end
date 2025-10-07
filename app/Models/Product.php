@@ -22,6 +22,8 @@ class Product extends Model
         'dimensions',
         'material',
         'color',
+        'discount_percentage',
+        'on_sale',
         'rating_avg',
         'rating_count'
     ];
