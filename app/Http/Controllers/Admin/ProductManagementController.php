@@ -42,10 +42,29 @@ class ProductManagementController extends Controller
             'color'        => 'nullable|string|max:255',
             'dimensions'   => 'nullable|string|max:255',
             'material'     => 'nullable|string|max:255',
+            'on_sale' => 'sometimes|boolean',
+            'discount_percentage' => 'sometimes|integer|min:0|max:100',
         ]);
+
+        // Auto-generate slug if empty
         if (empty($validated['slug'])) {
             $validated['slug'] = Str::slug($validated['title'], '-');
         }
+
+        // Normalize defaults
+        $validated['on_sale'] = $request->boolean('on_sale', false);
+        $validated['discount_percentage'] = (int) ($request->input('discount_percentage', 0));
+
+        // Business rule: if on_sale=true but no discount → error
+        if ($validated['on_sale'] && $validated['discount_percentage'] <= 0) {
+            return response()->json(['message' => 'If on_sale is true, discount_percentage must be greater than 0.'], 422);
+        }
+
+        // Optional auto-enable on_sale when discount > 0
+        if ($validated['discount_percentage'] > 0) {
+            $validated['on_sale'] = true;
+        }
+
         DB::beginTransaction();
         try {
             // Handle main image upload
@@ -56,27 +75,28 @@ class ProductManagementController extends Controller
 
             $product = Product::create($validated);
 
-            // Handle additional images (images[])
-            $createdImages = [];
+            // Handle additional images
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $file) {
                     $path = $file->store('products', 'public');
-                    $createdImages[] = $product->images()->create(['path' => $path]);
+                    $product->images()->create(['path' => $path]);
                 }
             }
 
             DB::commit();
-
-            $product->load('images','category');
+            $product->load('images', 'category');
 
             return response()->json([
                 'message' => 'Product created successfully',
                 'data' => $this->formatProductForAdmin($product),
             ], 201);
+
         } catch (\Throwable $e) {
             DB::rollBack();
-            // cleanup any uploaded files if you want (optional)
-            return response()->json(['message' => 'Failed to create product', 'error' => $e->getMessage()], 500);
+            return response()->json([
+                'message' => 'Failed to create product',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -89,7 +109,6 @@ class ProductManagementController extends Controller
      */
     public function update(Request $request, $id){
         $product = Product::with('images')->find($id);
-
         if (! $product) {
             return response()->json(['message' => 'Product not found'], 404);
         }
@@ -112,25 +131,44 @@ class ProductManagementController extends Controller
             'color'        => 'nullable|string|max:255',
             'dimensions'   => 'nullable|string|max:255',
             'material'     => 'nullable|string|max:255',
+            'on_sale' => 'sometimes|boolean',
+            'discount_percentage' => 'sometimes|integer|min:0|max:100',
         ]);
+
+        // Update slug
         if (!empty($validated['slug'])) {
             $product->slug = $validated['slug'];
         } elseif (isset($validated['title'])) {
             $product->slug = Str::slug($validated['title'], '-');
         }
+
+        // Normalize fields
+        $discount = (int) ($request->input('discount_percentage', $product->discount_percentage ?? 0));
+        $onSale = $request->boolean('on_sale', $product->on_sale);
+
+        // Validation rule
+        if ($onSale && $discount <= 0) {
+            return response()->json(['message' => 'If on_sale is true, discount_percentage must be greater than 0.'], 422);
+        }
+
+        // Optional auto-enable on_sale when discount > 0
+        if ($discount > 0) {
+            $onSale = true;
+        }
+
         DB::beginTransaction();
         try {
             // Update basic fields
             $updateFields = $request->only(['title','price','stock','color','dimensions','material','category_id','active','description']);
-            if (!empty($updateFields)) {
-                $product->update($updateFields);
-            }
+            $updateFields['discount_percentage'] = $discount;
+            $updateFields['on_sale'] = $onSale;
 
-            // 1) Delete removed images (if any). removed_images[] can be full URL or stored path.
+            $product->update($updateFields);
+
+            // Handle removed images
             if ($request->filled('removed_images')) {
                 foreach ($request->input('removed_images') as $pathOrUrl) {
                     $filename = basename(parse_url($pathOrUrl, PHP_URL_PATH));
-                    // find a matching product_image by path containing filename
                     $img = $product->images()->where('path', 'like', "%{$filename}")->first();
                     if ($img) {
                         Storage::disk('public')->delete($img->path);
@@ -139,10 +177,9 @@ class ProductManagementController extends Controller
                 }
             }
 
-            // 2) Handle main_image file upload (explicit new main file)
+            // Handle main_image upload
             $explicitMainUploaded = false;
             if ($request->hasFile('main_image')) {
-                // delete old main image file if exists
                 if ($product->main_image) {
                     Storage::disk('public')->delete($product->main_image);
                 }
@@ -152,8 +189,8 @@ class ProductManagementController extends Controller
                 $explicitMainUploaded = true;
             }
 
-            // 3) Save newly uploaded images (images[])
-            $newlyCreated = []; // collection of created ProductImage models in insertion order
+            // Handle newly uploaded images
+            $newlyCreated = [];
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $file) {
                     $path = $file->store('products', 'public');
@@ -161,42 +198,39 @@ class ProductManagementController extends Controller
                 }
             }
 
-            // 4) Handle main_image_choice metadata (if explicit main_image file was not used)
+            // Handle main_image_choice if provided
             $choiceType = $request->input('main_image_choice_type');
             $choiceIndex = (int) $request->input('main_image_choice_index', 0);
 
-            if (! $explicitMainUploaded && $choiceType) {
+            if (!$explicitMainUploaded && $choiceType) {
                 if ($choiceType === 'existing') {
-                    // refresh images to reflect deletions
                     $images = $product->images()->get()->values();
                     if (isset($images[$choiceIndex])) {
                         $product->main_image = $images[$choiceIndex]->path;
                         $product->save();
                     }
-                } elseif ($choiceType === 'new') {
-                    // choose from newly uploaded images (by index)
-                    if (isset($newlyCreated[$choiceIndex])) {
-                        $product->main_image = $newlyCreated[$choiceIndex]->path;
-                        $product->save();
-                    } else {
-                        // fallback: if newlyCreated is empty or index out of range, do nothing
-                    }
+                } elseif ($choiceType === 'new' && isset($newlyCreated[$choiceIndex])) {
+                    $product->main_image = $newlyCreated[$choiceIndex]->path;
+                    $product->save();
                 }
             }
 
             DB::commit();
 
             $product->refresh();
-            $product->load('images','category');
+            $product->load('images', 'category');
 
             return response()->json([
                 'message' => 'Product updated successfully',
                 'data' => $this->formatProductForAdmin($product),
             ], 200);
+
         } catch (\Throwable $e) {
             DB::rollBack();
-            // Optionally you can remove any newly uploaded files (not implemented here)
-            return response()->json(['message' => 'Failed to update product', 'error' => $e->getMessage()], 500);
+            return response()->json([
+                'message' => 'Failed to update product',
+                'error' => $e->getMessage(),
+            ], 500);
         }
     }
 
