@@ -294,6 +294,8 @@ class ProductManagementController extends Controller
             'color' => $product->color,
             'dimensions' => $product->dimensions,
             'material' => $product->material,
+            'discount_percentage' => $product->discount_percentage,
+            'on_sale' => $product->on_sale,
             'main_image' => $product->main_image ? asset('storage/' . ltrim($product->main_image, '/')) : null,
             'images' => $images,
             'created_at' => $product->created_at,
